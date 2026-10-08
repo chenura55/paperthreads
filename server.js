@@ -4,9 +4,18 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const DB_FILE = path.join(__dirname, 'data.json');
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+fs.mkdirSync(DATA_DIR, { recursive: true });
+const DB_FILE = path.join(DATA_DIR, 'data.json');
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- storage ----------
@@ -160,7 +169,7 @@ app.delete('/api/users/:id', auth, adminOnly, (req, res) => {
 
 // ---------- automatic backup ----------
 // Copies data.json into the "backups" folder on start and every 6 hours (one file per day, last 14 days kept)
-const BK_DIR = path.join(__dirname, 'backups');
+const BK_DIR = path.join(DATA_DIR, 'backups');
 function backup() {
   try {
     fs.mkdirSync(BK_DIR, { recursive: true });

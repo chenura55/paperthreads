@@ -105,6 +105,7 @@ td.r,th.r{text-align:right}
 .btn.ok{background:var(--ok);box-shadow:0 6px 16px #12a36b33}
 .btn.sm{padding:6px 11px;font-size:12px;border-radius:10px;box-shadow:none}
 .btn.del{background:#fde4ee;color:var(--bad);box-shadow:none}
+.btn.ico,.btn.sm.ico{padding:0;width:34px;height:34px;justify-content:center;gap:0}
 .in{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;margin-top:5px}
 .in::placeholder,.search input::placeholder,textarea::placeholder{font-family:inherit;font-weight:300;color:#9a95ad;opacity:1}
 .in:focus{border-color:var(--p2);outline:0;box-shadow:0 0 0 3px #e248a822}
@@ -264,7 +265,7 @@ dialog h3{margin:0 0 16px;font-size:18px}
     <label id="o_sfw" class="hide">Stand rent fee (added to total)<input class="in" id="o_sf" type="number" min="0" step="0.01" placeholder="e.g. 500"></label>
     <label id="o_sdw" class="hide">Stand deposit (refundable, added to total)<input class="in" id="o_sd" type="number" min="0" step="0.01" placeholder="e.g. 2500"></label>
     <label>Paint rent<span class="chk"><input type="checkbox" id="o_pr"> Paint rented</span></label>
-    <label id="o_pfw" class="hide">Paint rent fee (added to total)<input class="in" id="o_pf" type="number" min="0" step="0.01" placeholder="e.g. 300"></label>
+    <label id="o_pfw" class="hide">Paint rent fee (added to total)<input class="in" id="o_pf" type="number" min="0" step="0.01" placeholder="e.g. 1000"></label>
     <label class="full">Delivery address<textarea class="in" id="o_ad" rows="2" placeholder="House no, street, city"></textarea></label>
     <label class="full">Notes<textarea class="in" id="o_n" rows="2"></textarea></label>
   </div>
@@ -292,6 +293,7 @@ const LOGO='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2_U7kcnl0OTJg
 const API_BASE='https://paperthreads.onrender.com';
 const BUSINESS='Paperthreads';   // your business name
 const CUR='Rs. ';              // currency prefix
+const PAINT={rent:1000}; // default paint rent fee (editable per order)
 const STAND={rent:1300,deposit:2500}; // default stand rent fee and refundable deposit (editable per order)
 const SIZES=[['50×60 cm',4500],['50×70 cm',5500],['55×75 cm',6500],['80×80 cm',7500]]; // edit prices here
 const STATUS={Pending:'#e08a0b','In progress':'#bf4cb1',Completed:'#12a36b',Delivered:'#9a95ad'};
@@ -300,7 +302,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>CUR+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
 const today=()=>new Date().toISOString().slice(0,10);
 const daysTo=d=>d?Math.round((new Date(d+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5):null;
-const P={grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',box:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',bell:'<path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0"/>',truck:'<path d="M2 6h12v10H2zM14 10h4l4 3v3h-8"/><circle cx="6.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/>',users:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0114 0M17 4a4 4 0 010 8M22 21a7 7 0 00-4-6"/>',plus:'<path d="M12 5v14M5 12h14"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',out:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>',coin:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h4.5a1.8 1.8 0 010 3.5H10a1.8 1.8 0 000 3.5H15"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 7l12-3v3"/><circle cx="16.5" cy="13.5" r="1"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',check:'<path d="M20 6L9 17l-5-5"/>',easel:'<path d="M4 4h16v11H4zM12 15v6M8 21h8M12 4V2"/>'};
+const P={wa:'<path d="M3 21l1.65-4.9A9 9 0 1112 21a9 9 0 01-4.4-1.2L3 21z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.5-2-1-.9.8a3.5 3.5 0 01-1.6-1.6l.8-.9-1-2L9 9.5z"/>',doc:'<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',box:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',bell:'<path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0"/>',truck:'<path d="M2 6h12v10H2zM14 10h4l4 3v3h-8"/><circle cx="6.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/>',users:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0114 0M17 4a4 4 0 010 8M22 21a7 7 0 00-4-6"/>',plus:'<path d="M12 5v14M5 12h14"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',out:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>',coin:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h4.5a1.8 1.8 0 010 3.5H10a1.8 1.8 0 000 3.5H15"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 7l12-3v3"/><circle cx="16.5" cy="13.5" r="1"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',check:'<path d="M20 6L9 17l-5-5"/>',easel:'<path d="M4 4h16v11H4zM12 15v6M8 21h8M12 4V2"/>'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24">${P[n]}</svg>`;
 let token=localStorage.getItem('tok'),me=null,orders=[],users=[],page='dash',sfilter='';
 
@@ -347,14 +349,14 @@ function table(list,full){
   list.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}${o.payType==='cod'?' <span class="tag amber">COD</span>':''}${o.item?`<span class="sub2">${esc(o.item)}</span>`:''}</td><td>${esc(o.size)||'—'}</td>
   ${full?`<td>${esc(o.trackingNo)||'—'}</td><td>${rentCell(o)}</td><td>${esc(o.deadline)||'—'}${deadlineTag(o)}</td>`:''}
   <td class="r">${money(o.advance)}</td><td class="r">${o.remaining>0?`<b style="color:var(--bad)">${money(o.remaining)}</b>`:money(0)}</td><td class="r">${money(o.total)}${o.standDeposit>0?`<span class="sub2">incl. deposit ${money(o.standDeposit)}</span>`:''}</td><td>${stTag(o)}</td>
-  ${full?`<td><div class="acts">${o.remaining>0&&o.status!=='Delivered'?`<button class="btn ok sm" data-pay="${o.id}">Full payment</button>`:''}<button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button><button class="btn ghost sm" data-inv="${o.id}">Invoice</button><button class="btn ghost sm" data-edit="${o.id}">Edit</button><button class="btn del sm" data-del="${o.id}">Delete</button></div></td>`:''}</tr>`).join('')+'</tbody></table>'}
+  ${full?`<td><div class="acts">${o.remaining>0&&o.status!=='Delivered'?`<button class="btn ok sm" data-pay="${o.id}">Full payment</button>`:''}<button class="btn ghost sm ico" data-wa="${o.id}" title="WhatsApp" aria-label="WhatsApp">${ic('wa')}</button><button class="btn ghost sm ico" data-inv="${o.id}" title="Invoice" aria-label="Invoice">${ic('doc')}</button><button class="btn ghost sm ico" data-edit="${o.id}" title="Edit" aria-label="Edit">${ic('edit')}</button><button class="btn del sm ico" data-del="${o.id}" title="Delete" aria-label="Delete">${ic('trash')}</button></div></td>`:''}</tr>`).join('')+'</tbody></table>'}
 function reminders(){return orders.filter(o=>o.deadline&&o.status!=='Delivered'&&o.status!=='Completed').map(o=>({o,d:daysTo(o.deadline)})).filter(x=>x.d<=7).sort((a,b)=>a.d-b.d)}
 function remHTML(list,limit){if(!list.length)return '<div class="empty">No deadlines in the next 7 days.</div>';
   return list.slice(0,limit||99).map(({o,d})=>{const c=d<0?'var(--bad)':d<=2?'var(--warn)':'var(--p2)',t=d<0?`${-d} day${d<-1?'s':''} overdue`:d===0?'Due today':`Due in ${d} day${d>1?'s':''}`;
-  return `<div class="rem"><span class="dot" style="background:${c}"></span><div><b>${esc(o.orderNo)} · ${esc(o.customer)}</b><small>${esc(o.item||o.size||'')} · ${esc(o.deadline)} · ${esc(o.status)}</small></div><span class="tag ${d<0?'red':d<=2?'amber':''}">${t}</span><button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button></div>`}).join('')}
+  return `<div class="rem"><span class="dot" style="background:${c}"></span><div><b>${esc(o.orderNo)} · ${esc(o.customer)}</b><small>${esc(o.item||o.size||'')} · ${esc(o.deadline)} · ${esc(o.status)}</small></div><span class="tag ${d<0?'red':d<=2?'amber':''}">${t}</span><button class="btn ghost sm ico" data-wa="${o.id}" title="WhatsApp" aria-label="WhatsApp">${ic('wa')}</button></div>`}).join('')}
 const target=()=>Number(localStorage.getItem('target'))||50000;
 /* courier */
-const CST=['Ready to ship','Handed to courier','In transit','Out for delivery','Delivered'];
+const CST=['Ready to ship','Delivered'];
 function courierTables(){
   const ready=orders.filter(o=>o.status==='Completed'),done=orders.filter(o=>o.status==='Delivered').sort((a,b)=>(b.deliveredAt||'').localeCompare(a.deliveredAt||''));
   $('#cc').textContent=ready.length+' to ship';
@@ -362,7 +364,7 @@ function courierTables(){
   '<table style="min-width:900px"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>Tracking number</th><th>Courier status</th><th class="r">Balance</th><th></th></tr></thead><tbody>'+ready.map(o=>{const cs=o.courierStatus||'Ready to ship';return `<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}${o.payType==='cod'?' <span class="tag amber">COD</span>':''}<span class="sub2">${esc(o.size)}</span>${o.address?`<span class="sub2" style="white-space:normal;max-width:240px">${esc(o.address)}</span>`:''}</td><td>${esc(o.phone)||'—'}</td>
   <td><input class="in" style="margin:0;padding:7px 10px;width:170px" id="t_${o.id}" data-trk="${o.id}" value="${esc(o.trackingNo)}" placeholder="Tracking no"></td>
   <td><select class="in" style="margin:0;padding:7px 10px;width:170px" id="cs_${o.id}" data-cst="${o.id}">${CST.map(c=>`<option ${c===cs?'selected':''}>${c}</option>`).join('')}</select></td>
-  <td class="r">${o.remaining>0?(o.payType==='cod'?`<b style="color:var(--bad)">Collect ${money(o.remaining)}</b><span class="sub2">Cash on delivery</span>`:`<b style="color:var(--bad)">${money(o.remaining)}</b>`):'Paid'}</td><td><div class="acts"><button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button><button class="btn sm" data-upd="${o.id}">Save</button></div></td></tr>`}).join('')+'</tbody></table>';
+  <td class="r">${o.remaining>0?(o.payType==='cod'?`<b style="color:var(--bad)">Collect ${money(o.remaining)}</b><span class="sub2">Cash on delivery</span>`:`<b style="color:var(--bad)">${money(o.remaining)}</b>`):'Paid'}</td><td><div class="acts"><button class="btn ghost sm ico" data-wa="${o.id}" title="WhatsApp" aria-label="WhatsApp">${ic('wa')}</button><button class="btn sm" data-upd="${o.id}">Save</button></div></td></tr>`}).join('')+'</tbody></table>';
   $('#dtable').innerHTML=!done.length?'<div class="empty">No delivered orders yet.</div>':'<table style="min-width:640px"><thead><tr><th>Order</th><th>Customer</th><th>Tracking no</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>'+done.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}</td><td>${esc(o.trackingNo)||'—'}</td><td>${esc(o.deliveredAt)||'—'}</td><td>${stTag(o)}${o.codCollected?'<span class="sub2">COD collected</span>':''}</td><td><div class="acts"><button class="btn ghost sm" data-undo="${o.id}">Undo</button></div></td></tr>`).join('')+'</tbody></table>'}
 /* earnings: the refundable stand deposit is NOT counted as sales */
 const sale=o=>o.total-(o.standRent?(o.standDeposit||0):0);
@@ -371,7 +373,7 @@ const held=o=>o.standRent&&!o.standReturned?Math.max(0,Math.min(o.standDeposit||
 function standsTables(){
   const all=orders.filter(o=>o.standRent),out=all.filter(o=>!o.standReturned),back=all.filter(o=>o.standReturned).sort((a,b)=>(b.standReturnedAt||'').localeCompare(a.standReturnedAt||''));
   $('#sc').textContent=out.length+' out';const sb=out.filter(o=>o.status==='Delivered').length;$('#sb').textContent=sb;$('#sb').classList.toggle('hide',!sb);
-  $('#stable').innerHTML=!out.length?'<div class="empty">No stands are out with customers.</div>':'<table style="min-width:860px"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>Order status</th><th class="r">Stand rent</th><th class="r">Deposit held</th><th></th></tr></thead><tbody>'+out.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}</td><td>${esc(o.phone)||'—'}</td><td>${stTag(o)}</td><td class="r">${money(o.standFee)}</td><td class="r"><b>${money(held(o))}</b>${o.standDeposit>held(o)?`<span class="sub2">of ${money(o.standDeposit)} (not fully paid yet)</span>`:''}</td><td><div class="acts"><button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button>${o.status==='Delivered'?`<button class="btn ok sm" data-sret="${o.id}">Stand returned</button>`:'<span class="sub2">Not delivered yet</span>'}</div></td></tr>`).join('')+'</tbody></table>';
+  $('#stable').innerHTML=!out.length?'<div class="empty">No stands are out with customers.</div>':'<table style="min-width:860px"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>Order status</th><th class="r">Stand rent</th><th class="r">Deposit held</th><th></th></tr></thead><tbody>'+out.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}</td><td>${esc(o.phone)||'—'}</td><td>${stTag(o)}</td><td class="r">${money(o.standFee)}</td><td class="r"><b>${money(held(o))}</b>${o.standDeposit>held(o)?`<span class="sub2">of ${money(o.standDeposit)} (not fully paid yet)</span>`:''}</td><td><div class="acts"><button class="btn ghost sm ico" data-wa="${o.id}" title="WhatsApp" aria-label="WhatsApp">${ic('wa')}</button>${o.status==='Delivered'?`<button class="btn ok sm" data-sret="${o.id}">Stand returned</button>`:'<span class="sub2">Not delivered yet</span>'}</div></td></tr>`).join('')+'</tbody></table>';
   $('#rtable').innerHTML=!back.length?'<div class="empty">No returned stands yet.</div>':'<table style="min-width:640px"><thead><tr><th>Order</th><th>Customer</th><th>Returned on</th><th class="r">Deposit refunded</th><th></th></tr></thead><tbody>'+back.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}</td><td>${esc(o.standReturnedAt)||'—'}</td><td class="r">${money(o.depositRefunded||0)}</td><td><div class="acts"><button class="btn ghost sm" data-sundo="${o.id}">Undo</button></div></td></tr>`).join('')+'</tbody></table>'}
 /* phones: give every table cell its column label (CSS turns rows into cards) */
 function labelCells(){$$('.tw table').forEach(t=>{const hs=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim());
@@ -389,8 +391,8 @@ function renderAll(){
   $('#otable').innerHTML=table(filtered(),true);
   $('#recent').innerHTML=table(orders.slice().sort((a,b)=>b.orderNo.localeCompare(a.orderNo)).slice(0,5),false);
   $('#remfull').innerHTML=remHTML(rm);$('#remside').innerHTML=remHTML(rm,5);courierTables();standsTables();
-  const tot=orders.reduce((s,o)=>s+sale(o),0),due=orders.reduce((s,o)=>s+o.remaining,0),got=orders.reduce((s,o)=>s+Math.min(paidAmt(o),sale(o)),0),dep=orders.reduce((s,o)=>s+held(o),0);
-  $('#stats').innerHTML=[['hero','coin','Total sales',money(tot)],['','box','Total orders',orders.length],['green','wallet','Payments received',money(got)],['warn','clock','Balance to collect',money(due)],['','easel','Stand deposits held',money(dep)]].map(s=>`<div class="card stat ${s[0]}"><span class="ic">${ic(s[1])}</span><small>${s[2]}</small><b>${s[3]}</b></div>`).join('');
+  const tot=orders.reduce((s,o)=>s+sale(o),0),due=orders.reduce((s,o)=>s+o.remaining,0),got=orders.reduce((s,o)=>s+Math.min(paidAmt(o),sale(o)),0),dep=orders.reduce((s,o)=>s+held(o),0),pr=orders.filter(o=>o.paintRent&&o.paintFee>0),prt=pr.reduce((s,o)=>s+o.paintFee,0);
+  $('#stats').innerHTML=[['hero','coin','Total sales',money(tot)],['','box','Total orders',orders.length],['green','wallet','Payments received',money(got)],['warn','clock','Balance to collect',money(due)],['','easel','Stand deposits held',money(dep)],['','coin','Paint rentals ('+pr.length+')',money(prt)]].map(s=>`<div class="card stat ${s[0]}"><span class="ic">${ic(s[1])}</span><small>${s[2]}</small><b>${s[3]}</b></div>`).join('');
   const m=Array(12).fill(0);orders.forEach(o=>{if((o.orderDate||'').startsWith(now.getFullYear()))m[+o.orderDate.slice(5,7)-1]+=sale(o)});
   const mx=Math.max(...m,1);$('#yr').textContent=now.getFullYear();
   $('#bars').innerHTML=m.map((v,i)=>`<div class="${i===now.getMonth()?'cur':''} ${v?'':'zero'}" data-v="${money(v)}" style="--h:${v/mx*100}%"><i style="height:${v/mx*100}%"></i></div>`).join('');
@@ -418,7 +420,8 @@ let prevFee=0;
 function sizeChanged(){const v=$('#o_sz').value,other=v==='__other';$('#o_scw').classList.toggle('hide',!other);
   if(!other){$('#o_t').value=SIZES.find(s=>s[0]===v)[1]+fee()}calc()}
 function feeChanged(){const f=fee();$('#o_sfw').classList.toggle('hide',!$('#o_sr').checked);$('#o_sdw').classList.toggle('hide',!$('#o_sr').checked);$('#o_pfw').classList.toggle('hide',!$('#o_pr').checked);$('#o_t').value=Math.max(0,(+$('#o_t').value||0)+f-prevFee);prevFee=f;calc()}
-$('#o_sf').oninput=$('#o_sd').oninput=$('#o_pr').onchange=$('#o_pf').oninput=feeChanged;
+$('#o_sf').oninput=$('#o_sd').oninput=$('#o_pf').oninput=feeChanged;
+$('#o_pr').onchange=()=>{if($('#o_pr').checked&&!$('#o_pf').value)$('#o_pf').value=PAINT.rent;feeChanged()};
 $('#o_sr').onchange=()=>{if($('#o_sr').checked){if(!$('#o_sf').value)$('#o_sf').value=STAND.rent;if(!$('#o_sd').value)$('#o_sd').value=STAND.deposit}feeChanged()};
 $('#o_sz').onchange=sizeChanged;$('#o_t').oninput=$('#o_a').oninput=$('#o_pt').onchange=calc;
 function openOrder(o){editId=o?.id||null;editStatus=o?.status||'';$('#odt').textContent=o?'Edit order':'New order';$('#oe').textContent='';
@@ -445,7 +448,7 @@ document.addEventListener('click',async e=>{const t=e.target,g=t.closest('[data-
   if(d.sundo&&await ask('Undo?','Move this stand back to "with customers"? The refund record will be removed.','Yes, undo')){try{await api('orders/'+d.sundo+'/stand','POST',{returned:false});await load()}catch(x){warn(x.message)}}
   if(d.del&&await askDel('Delete this order?','This cannot be undone.')){await api('orders/'+d.del,'DELETE');load()}
   if(d.upd)saveCourier(d.upd);
-  if(d.undo&&await ask('Move back?','Move this order back to the courier list?','Yes, move')){try{await api('orders/'+d.undo,'PATCH',{courierStatus:'Out for delivery'});await load();toast('Moved back to courier list')}catch(x){warn(x.message)}}
+  if(d.undo&&await ask('Move back?','Move this order back to the courier list?','Yes, move')){try{await api('orders/'+d.undo,'PATCH',{courierStatus:'Ready to ship'});await load();toast('Moved back to courier list')}catch(x){warn(x.message)}}
   if(d.uedit)openUser(users.find(u=>u.id===d.uedit));
   if(d.udel&&await askDel('Delete this user?','This cannot be undone.')){try{await api('users/'+d.udel,'DELETE');loadUsers()}catch(x){warn(x.message)}}});
 /* courier save (auto-saves when the status or tracking number changes) */
@@ -467,6 +470,7 @@ $('#newu').onclick=()=>openUser();
 $('#uf').onsubmit=async e=>{e.preventDefault();const b={name:$('#u_n').value,username:$('#u_u').value,password:$('#u_p').value,role:$('#u_r').value};
   try{uid?await api('users/'+uid,'PUT',b):await api('users','POST',b);$('#ud').close();loadUsers()}catch(x){$('#ue').textContent=x.message}};
 /* WhatsApp click-to-chat */
+const REVIEW_URL='https://search.google.com/local/writereview?placeid=ChIJA8mtOQBP4joRRDVpw-Oy6M8';
 const WA_CC='94'; // country code (Sri Lanka)
 const waNum=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);else if(d.startsWith('0'))d=WA_CC+d.slice(1);else if(d.length<=9)d=WA_CC+d;return d};
 const bankTxt=()=>`\n\nBank details:\nAccount name: ${INVOICE.accName}\nBank: ${INVOICE.bank}\nAccount no: ${INVOICE.accNo}`;
@@ -484,8 +488,7 @@ const WA_T=o=>{const cod=o.payType==='cod',bal=money(o.remaining),hi=`Hi ${o.cus
   {k:'Order update',s:'update',t:`${hi} Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`},
   {k:'Artwork ready (COD)',s:'ready',t:`${hi} Your artwork for order ${o.orderNo} is ready! We will send it by courier (cash on delivery). Please keep ${bal} ready to pay the courier on arrival.${addr(o)}${ask}`},
   {k:'Shipped (COD)',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nPlease keep ${bal} in cash ready for the courier. The delivery fee is also paid to the courier on arrival. It should reach you soon!`},
-  {k:'Out for delivery (COD)',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it and keep ${bal} ready to pay the courier, along with the delivery fee.`},
-  {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for your payment and for choosing us! We'd love to hear what you think of your artwork.`}].concat(SX);
+  {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for your payment and for choosing us! We'd love to hear what you think of your artwork. Please leave us a quick review here:\n${REVIEW_URL}`}].concat(SX);
   return[
   {k:'Invoice / payment details',s:'invoice',t:`${hi} Here is the invoice for order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nPaid: ${money(o.advance)}\nBalance: ${o.remaining>0?bal:'Paid in full'}${o.remaining>0?`\n\nPlease complete the full payment so we can ship your order.${bankTxt()}\n\nPlease send the payment slip once paid. Thank you!`:'\n\nThank you for your order!'}${dep}${dn}`},
   {k:'Payment reminder',s:'payrem',t:`${hi} A balance of ${bal} is pending for order ${o.orderNo}. We will ship your artwork once the full payment is received.${bankTxt()}\n\nThank you!`},
@@ -493,12 +496,11 @@ const WA_T=o=>{const cod=o.payType==='cod',bal=money(o.remaining),hi=`Hi ${o.cus
   {k:'Order update',s:'update',t:`${hi} Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`},
   {k:'Artwork ready',s:'ready',t:`${hi} Your artwork for order ${o.orderNo} is ready!${o.remaining>0?` Please complete the balance of ${bal} so we can ship it.${bankTxt()}`:' We will send it by courier shortly.'}${addr(o)}${ask}`},
   {k:'Shipped',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nIt should reach you soon!${dn}`},
-  {k:'Out for delivery',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it. Your order is fully paid - only the delivery fee is payable to the courier.`},
-  {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for choosing us! We'd love to hear what you think of your artwork.`}].concat(SX)};
+  {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for choosing us! We'd love to hear what you think of your artwork. Please leave us a quick review here:\n${REVIEW_URL}`}].concat(SX)};
 let waOrder=null;
 function openWA(o){if(!o)return;if(!waNum(o.phone)){warn('This order has no phone number. Add one using Edit.','No phone number');return}
   waOrder=o;const T=WA_T(o),cs=o.courierStatus,
-  st=o.status==='Delivered'?'delivered':o.status==='Completed'?(cs==='Out for delivery'?'out':cs&&cs!=='Ready to ship'?'shipped':'ready'):(!(o.advance>0)?'invoice':'update'),
+  st=o.status==='Delivered'?'delivered':o.status==='Completed'?'ready':(!(o.advance>0)?'invoice':'update'),
   def=T.find(x=>x.s===st)||T[0];
   $('#w_to').textContent=o.customer+' · +'+waNum(o.phone)+' · '+(o.payType==='cod'?'Cash on delivery':'Full payment');
   $('#w_t').innerHTML=T.map(x=>`<option ${x===def?'selected':''}>${esc(x.k)}</option>`).join('');$('#w_m').value=def.t;$('#wd').showModal()}
@@ -530,7 +532,7 @@ const INVOICE={website:'',email:'',phone:'',bank:'BOC - Piliyandala',accName:'UB
 function invoice(o){
   const w=window.open('','_blank');if(!w){warn('Please allow pop-ups in your browser to open the invoice.','Pop-up blocked');return}
   const I=INVOICE,paid=o.remaining<=0,art=o.total-(o.standFee||0)-(o.paintFee||0)-(o.standDeposit||0),fd=d=>d?d.split('-').reverse().join(' - '):'—';
-  const rows=[[o.item||'Custom artwork',o.size?'Size: '+o.size:'',art]];if(o.standFee>0)rows.push(['Stand rent','',o.standFee]);if(o.paintFee>0)rows.push(['Paint rent','',o.paintFee]);if(o.standDeposit>0)rows.push(['Stand deposit (refundable)','Refunded when the stand is returned',o.standDeposit]);
+  const rows=[[o.item||'Custom artwork',o.size?'Size: '+o.size:'',art]];if(o.paintFee>0)rows.push(['Paint rent','',o.paintFee]);if(o.standFee>0)rows.push(['Stand rent','',o.standFee]);if(o.standDeposit>0)rows.push(['Stand deposit (refundable)','Refunded when the stand is returned',o.standDeposit]);
   const svg=p=>`<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   const contact=[[I.website,'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>'],[I.email,'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'],[I.phone,
     '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>']].filter(c=>c[0]);
@@ -562,7 +564,7 @@ function invoice(o){
   .tot div{display:flex;justify-content:space-between;padding:2mm 0;font-weight:600}
   .pill{display:flex;justify-content:space-between;align-items:center;margin-top:1mm;padding:2.4mm 4mm;border-radius:99px;background:linear-gradient(90deg,var(--p),var(--a1));color:#fff;font-weight:700;font-size:9.5pt}
   .bill{margin-top:12mm}.bill h3{margin:0 0 4mm;font-size:12pt;font-weight:700;letter-spacing:.6mm;color:var(--d)}.bill p{margin:0;font-weight:600;line-height:1.6}.bill small{color:var(--mute);font-weight:500}
-  .sg{position:absolute;right:16mm;bottom:30mm;width:58mm;border-top:.3mm solid var(--ink);text-align:center;padding-top:1.5mm;font-size:8pt;font-weight:600}
+  .sg{position:absolute;right:16mm;bottom:14mm;width:58mm;border-top:.3mm solid var(--ink);text-align:center;padding-top:1.5mm;font-size:8pt;font-weight:600}
   .br{position:absolute;left:0;bottom:0;width:100mm;height:50mm;background:var(--d);border-top-right-radius:100% 100%}
   .bc{position:absolute;left:-10mm;bottom:33mm;width:26mm;height:26mm;border-radius:50%;background:linear-gradient(135deg,var(--a1),var(--p));box-shadow:0 2mm 3mm #0003}
   .ct{position:absolute;left:16mm;bottom:11mm;color:#fff;font-size:7.5pt;font-weight:500;line-height:1}.ct div{display:flex;align-items:center;gap:2.5mm;margin-top:2.6mm}

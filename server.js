@@ -76,6 +76,8 @@ async function initDb() {
     db.users.push({ id: crypto.randomUUID(), name: 'Admin', username: 'admin', role: 'admin', password: hash('admin123') });
     console.log('First run: login with admin / admin123 (change it in Users page)');
   }
+  // old courier statuses (In transit, Out for delivery...) were removed: only Ready to ship / Delivered remain
+  db.orders.forEach(o => { if (o.status === 'Completed' && o.courierStatus !== 'Ready to ship') o.courierStatus = 'Ready to ship'; });
   if (!db.secret) db.secret = crypto.randomBytes(32).toString('hex');
   save(); await writing;
   if (saveError) throw saveError;
@@ -133,14 +135,14 @@ function cleanOrder(b) {
     payType: b.payType === 'cod' ? 'cod' : 'full', // full = pays everything before shipping, cod = advance now + balance on delivery
   };
 }
-const COURIER = ['Ready to ship', 'Handed to courier', 'In transit', 'Out for delivery', 'Delivered'];
+const COURIER = ['Ready to ship', 'Delivered'];
 const EDITABLE = ['Pending', 'In progress', 'Completed'];
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const dupOf = (no, id) => db.orders.find(o => o.id !== id && o.orderNo.toLowerCase() === no.toLowerCase());
 const dupMsg = d => 'Order number ' + d.orderNo + ' is already used (customer: ' + d.customer + ')';
 // keep courier fields consistent with the order status
 function syncCourier(o) {
-  if (o.status === 'Completed') { if (!o.courierStatus || o.courierStatus === 'Delivered') o.courierStatus = 'Ready to ship'; delete o.deliveredAt; }
+  if (o.status === 'Completed') { if (!COURIER.includes(o.courierStatus) || o.courierStatus === 'Delivered') o.courierStatus = 'Ready to ship'; delete o.deliveredAt; }
   else if (o.status === 'Delivered') { o.courierStatus = 'Delivered'; if (!o.deliveredAt) o.deliveredAt = todayStr(); }
   else { delete o.courierStatus; delete o.deliveredAt; }
 }

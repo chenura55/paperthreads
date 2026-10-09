@@ -11,7 +11,7 @@
 <style>.swal2-container{z-index:10000}.swal2-popup{font-family:inherit;border-radius:20px}</style>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--p:#6d3ee0;--p2:#8b5cf6;--p3:#c4b0fb;--soft:#f3effe;--bg:#f6f4fc;--card:#fff;--ink:#1f1a33;--mute:#7b7592;--line:#ebe7f6;--ok:#12a36b;--bad:#e0346f;--warn:#e08a0b;--r:20px}
+:root{--p:#bf4cb1;--p2:#e248a8;--p3:#eab5de;--soft:#f8ecf7;--bg:#ead3ef;--card:#fcfafd;--ink:#211521;--mute:#807a86;--line:#e8d6ec;--ok:#12a36b;--bad:#e0346f;--warn:#e08a0b;--r:20px}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
@@ -21,23 +21,23 @@ button{cursor:pointer}
 .hide{display:none!important}
 svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 /* login */
-#login{min-height:100%;display:grid;place-items:center;padding:20px;background:radial-gradient(900px 500px at 20% 0,#e5dcff,transparent),radial-gradient(700px 500px at 100% 100%,#ddd0ff,transparent),var(--bg)}
-.lbox{background:#fff;border-radius:28px;padding:38px;width:100%;max-width:390px;box-shadow:0 30px 70px #6d3ee026;text-align:center}
+#login{min-height:100%;display:grid;place-items:center;padding:20px;background:radial-gradient(900px 500px at 20% 0,#f3d6ee,transparent),radial-gradient(700px 500px at 100% 100%,#ebd0ef,transparent),var(--bg)}
+.lbox{background:#fff;border-radius:28px;padding:38px;width:100%;max-width:390px;box-shadow:0 30px 70px #bf4cb126;text-align:center}
 .lbox img{width:84px;height:84px;object-fit:contain;border-radius:50%}
 .lbox h1{margin:12px 0 4px;font-size:24px;font-weight:800}
 .lbox p{margin:0 0 20px;color:var(--mute)}
 /* shell */
 #app{display:flex;min-height:100%}
-aside{width:248px;background:linear-gradient(175deg,#7c4ff0,#5a2fc7 70%);color:#fff;padding:22px 16px;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh}
+aside{width:248px;background:linear-gradient(170deg,#e248a8,#bf4cb1 55%,#8932b4);color:#fff;padding:22px 16px;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;padding:2px 10px 26px}
 .brand img{width:42px;height:42px;border-radius:12px;object-fit:contain;background:#fff;padding:2px}
-nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#e4d9ff;margin-bottom:6px;font-weight:600;cursor:pointer;transition:background .15s}
+nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#fde3f3;margin-bottom:6px;font-weight:600;cursor:pointer;transition:background .15s}
 nav a:hover{background:#ffffff1f}
-nav a.on{background:#fff;color:var(--p);box-shadow:0 8px 20px #2a107a40}
+nav a.on{background:#fff;color:var(--p);box-shadow:0 8px 20px #5a1f7840}
 nav a .badge{margin-left:auto;background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:1px 8px}
 .sidefoot{margin-top:auto;background:#ffffff1f;border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px}
 .sidefoot .av{background:#fff;color:var(--p)}
-.sidefoot b{display:block;font-size:13px}.sidefoot small{color:#d8caff}
+.sidefoot b{display:block;font-size:13px}.sidefoot small{color:#fbd5ec}
 .sidefoot button{margin-left:auto;background:none;border:0;color:#fff;padding:6px;border-radius:8px}
 .sidefoot button:hover{background:#ffffff26}
 main{flex:1;padding:26px 32px;min-width:0;width:100%}
@@ -51,15 +51,15 @@ main{flex:1;padding:26px 32px;min-width:0;width:100%}
 /* cards */
 .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px}
 .col{display:flex;flex-direction:column;gap:20px;min-width:0}
-.card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:0 1px 2px #1f1a330a,0 8px 24px #6d3ee00d}
+.card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:0 1px 2px #2115210a,0 8px 24px #bf4cb10d}
 .card h3{margin:0 0 14px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .stat{display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
 .stat .ic{width:40px;height:40px;border-radius:13px;background:var(--soft);color:var(--p);display:grid;place-items:center}
 .stat small{color:var(--mute);font-weight:600}
 .stat b{font-size:24px;letter-spacing:-.5px}
-.stat.hero{background:linear-gradient(135deg,#7c4ff0,#5a2fc7);color:#fff}
-.stat.hero .ic{background:#ffffff2e;color:#fff}.stat.hero small{color:#e0d5ff}
+.stat.hero{background:linear-gradient(135deg,#e248a8,#bf4cb1 55%,#8932b4);color:#fff}
+.stat.hero .ic{background:#ffffff2e;color:#fff}.stat.hero small{color:#fbd9ee}
 .stat.warn .ic{background:#fdeed6;color:var(--warn)}
 .stat.green .ic{background:#dcf5ea;color:var(--ok)}
 /* chart */
@@ -68,7 +68,7 @@ main{flex:1;padding:26px 32px;min-width:0;width:100%}
 .bars i{display:block;width:100%;max-width:30px;background:linear-gradient(180deg,var(--p2),var(--p));border-radius:9px 9px 3px 3px;min-height:3px;transition:filter .15s}
 .bars div:hover i{filter:brightness(1.15)}
 .bars div:hover::after{content:attr(data-v);position:absolute;bottom:calc(var(--h) + 8px);background:var(--ink);color:#fff;font-size:11px;padding:3px 8px;border-radius:8px;white-space:nowrap;z-index:2}
-.bars div.cur i{background:linear-gradient(180deg,#a78bfa,#7c4ff0)}
+.bars div.cur i{background:linear-gradient(180deg,#ee79c0,#e248a8)}
 .bars div.zero i{background:var(--line)}
 .labels{display:flex;gap:10px;margin-top:8px;font-size:11px;color:var(--mute);font-weight:600}.labels span{flex:1;text-align:center}
 /* gauge, donut */
@@ -94,20 +94,20 @@ main{flex:1;padding:26px 32px;min-width:0;width:100%}
 table{width:100%;border-collapse:collapse;min-width:900px}
 th{font-size:12px;text-align:left;color:var(--mute);font-weight:600;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:12px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-tbody tr:hover{background:#faf8ff}
+tbody tr:hover{background:#fcf4fc}
 td.r,th.r{text-align:right}
 .acts{display:flex;gap:6px;justify-content:flex-end}
 .sub2{display:block;color:var(--mute);font-size:12px}
 /* controls */
-.btn{background:var(--p);color:#fff;border:0;border-radius:12px;padding:10px 18px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 16px #6d3ee033}
-.btn:hover{background:#5d2fcf}
-.btn.ghost{background:var(--soft);color:var(--p);box-shadow:none}.btn.ghost:hover{background:#e8e0fc}
+.btn{background:linear-gradient(90deg,#e248a8,#bf4cb1 55%,#8932b4);color:#fff;border:0;border-radius:12px;padding:10px 18px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 16px #bf4cb133}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:var(--soft);color:var(--p);box-shadow:none}.btn.ghost:hover{background:#f0dcf1}
 .btn.ok{background:var(--ok);box-shadow:0 6px 16px #12a36b33}
 .btn.sm{padding:6px 11px;font-size:12px;border-radius:10px;box-shadow:none}
 .btn.del{background:#fde4ee;color:var(--bad);box-shadow:none}
 .in{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;margin-top:5px}
 .in::placeholder,.search input::placeholder,textarea::placeholder{font-family:inherit;font-weight:300;color:#9a95ad;opacity:1}
-.in:focus{border-color:var(--p2);outline:0;box-shadow:0 0 0 3px #8b5cf622}
+.in:focus{border-color:var(--p2);outline:0;box-shadow:0 0 0 3px #e248a822}
 label{font-size:12px;font-weight:700;color:var(--mute);display:block}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .chip{background:var(--soft);color:var(--p);border:0;border-radius:99px;padding:8px 14px;font-weight:700;font-size:13px}
@@ -116,8 +116,8 @@ label{font-size:12px;font-weight:700;color:var(--mute);display:block}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.f2 .full{grid-column:1/-1}
 .chk{display:flex;align-items:center;gap:10px;margin-top:5px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-size:14px;color:var(--ink);font-weight:600;cursor:pointer}
 .chk input{width:18px;height:18px;accent-color:var(--p)}
-dialog{border:0;border-radius:24px;padding:26px;width:min(580px,94vw);max-height:92vh;overflow:auto;box-shadow:0 30px 80px #1f1a3355}
-dialog::backdrop{background:#1f1a3355;backdrop-filter:blur(2px)}
+dialog{border:0;border-radius:24px;padding:26px;width:min(580px,94vw);max-height:92vh;overflow:auto;box-shadow:0 30px 80px #21152155}
+dialog::backdrop{background:#21152155;backdrop-filter:blur(2px)}
 dialog h3{margin:0 0 16px;font-size:18px}
 .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .err{color:var(--bad);font-size:13px;min-height:18px;margin-top:8px}
@@ -168,7 +168,7 @@ dialog h3{margin:0 0 16px;font-size:18px}
         </div>
         <div class="col">
           <div class="card"><h3>Monthly target <button class="btn ghost sm" id="sett">Set target</button></h3>
-            <div class="gauge"><svg viewBox="0 0 200 110"><path d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="#efeafd" stroke-width="20" stroke-linecap="round"/><path id="gp" d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="url(#gg)" stroke-width="20" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/><defs><linearGradient id="gg"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d3ee0"/></linearGradient></defs></svg><div class="t" id="gt"></div></div>
+            <div class="gauge"><svg viewBox="0 0 200 110"><path d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="#f6e6f4" stroke-width="20" stroke-linecap="round"/><path id="gp" d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="url(#gg)" stroke-width="20" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/><defs><linearGradient id="gg"><stop offset="0" stop-color="#ee79c0"/><stop offset="1" stop-color="#bf4cb1"/></linearGradient></defs></svg><div class="t" id="gt"></div></div>
             <div class="two"><div><small>Target</small><b id="tg"></b></div><div><small>This month</small><b id="rv"></b></div></div>
           </div>
           <div class="card"><h3>Order status</h3><div class="donutw"><svg id="donut" viewBox="0 0 42 42" width="120" height="120"></svg><div class="leg" id="leg"></div></div></div>
@@ -231,7 +231,7 @@ dialog h3{margin:0 0 16px;font-size:18px}
 
 <script>
 // Paperthreads mark (paper + thread). Used as favicon, sidebar logo and invoice logo.
-const MARK='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#5a2fc7"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><path d="M20 12h18l10 10v28a3 3 0 0 1-3 3H20a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z" fill="#fff"/><path d="M38 12v10h10z" fill="#c4b0fb"/><path d="M24 33c5-6 11 6 16 0M24 42c5-6 11 6 16 0" fill="none" stroke="#6d3ee0" stroke-width="3" stroke-linecap="round"/></svg>');
+const MARK='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e248a8"/><stop offset="1" stop-color="#8932b4"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><path d="M20 12h18l10 10v28a3 3 0 0 1-3 3H20a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z" fill="#fff"/><path d="M38 12v10h10z" fill="#eab5de"/><path d="M24 33c5-6 11 6 16 0M24 42c5-6 11 6 16 0" fill="none" stroke="#bf4cb1" stroke-width="3" stroke-linecap="round"/></svg>');
 const LOGO='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2_U7kcnl0OTJgvyN4CgL8nIRqF6TfzMHUL4PUAJGoeQ&s=10oya';
 // Backend address. Leave '' when the site and API are on the same server (Render only).
 // For Vercel + Render, put your Render URL here, e.g. 'https://paperthreads-api.onrender.com' (no trailing slash)
@@ -239,7 +239,7 @@ const API_BASE='https://paperthreads.onrender.com';
 const BUSINESS='Paperthreads';   // your business name
 const CUR='Rs. ';              // currency prefix
 const SIZES=[['50×60 cm',4500],['50×70 cm',5500],['55×75 cm',6500],['80×80 cm',7500]]; // edit prices here
-const STATUS={Pending:'#e08a0b','In progress':'#6d3ee0',Completed:'#12a36b',Delivered:'#9a95ad'};
+const STATUS={Pending:'#e08a0b','In progress':'#bf4cb1',Completed:'#12a36b',Delivered:'#9a95ad'};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>CUR+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
@@ -328,11 +328,11 @@ function renderAll(){
   $('#bl').innerHTML=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(x=>`<span>${x}</span>`).join('');
   const rev=orders.filter(o=>(o.orderDate||'').startsWith(mk)).reduce((s,o)=>s+o.total,0),tg=target(),pc=Math.min(100,Math.round(rev/tg*100));
   $('#gp').setAttribute('stroke-dasharray',pc+' 100');$('#gt').innerHTML=pc+'%<small>of target</small>';$('#tg').textContent=money(tg);$('#rv').textContent=money(rev);
-  const n=orders.length||1;let off=25,svg='<circle cx="21" cy="21" r="15.9" fill="none" stroke="#efeafd" stroke-width="6"/>';
+  const n=orders.length||1;let off=25,svg='<circle cx="21" cy="21" r="15.9" fill="none" stroke="#f6e6f4" stroke-width="6"/>';
   Object.keys(STATUS).forEach(s=>{const v=counts[s]/n*100;if(v){svg+=`<circle cx="21" cy="21" r="15.9" fill="none" stroke="${STATUS[s]}" stroke-width="6" stroke-dasharray="${v} ${100-v}" stroke-dashoffset="${off}"/>`;off-=v}});
-  $('#donut').innerHTML=svg+`<text x="21" y="23" text-anchor="middle" font-size="8" font-weight="800" fill="#1f1a33">${orders.length}</text>`;
+  $('#donut').innerHTML=svg+`<text x="21" y="23" text-anchor="middle" font-size="8" font-weight="800" fill="#211521">${orders.length}</text>`;
   $('#leg').innerHTML=Object.keys(STATUS).map(s=>`<button data-go-s="${s}"><i style="background:${STATUS[s]}"></i>${s}<b>${counts[s]}</b></button>`).join('')}
-$('#sett').onclick=async()=>{const r=await Swal.fire({title:'Monthly sales target',input:'number',inputValue:target(),inputAttributes:{min:1},showCancelButton:true,confirmButtonText:'Save',confirmButtonColor:'#6d3ee0',cancelButtonColor:'#9a95ad',reverseButtons:true,inputValidator:v=>(!v||+v<=0)?'Enter a number greater than 0':undefined});if(r.isConfirmed&&+r.value>0){localStorage.setItem('target',+r.value);renderAll();toast('Target saved')}};
+$('#sett').onclick=async()=>{const r=await Swal.fire({title:'Monthly sales target',input:'number',inputValue:target(),inputAttributes:{min:1},showCancelButton:true,confirmButtonText:'Save',confirmButtonColor:'#bf4cb1',cancelButtonColor:'#9a95ad',reverseButtons:true,inputValidator:v=>(!v||+v<=0)?'Enter a number greater than 0':undefined});if(r.isConfirmed&&+r.value>0){localStorage.setItem('target',+r.value);renderAll();toast('Target saved')}};
 /* order dialog */
 let editId=null,editStatus='';const od=$('#od');
 function nextNo(){let n=-1,m0=null;orders.forEach(o=>{const m=String(o.orderNo).match(/^(.*?)(\d+)$/);if(m&&+m[2]>n){n=+m[2];m0=m}});return m0?m0[1]+String(n+1).padStart(m0[2].length,'0'):'ART-0001'}
@@ -378,9 +378,9 @@ document.addEventListener('click',async e=>{const t=e.target,g=t.closest('[data-
   if(d.udel&&await askDel('Delete this user?','This cannot be undone.')){try{await api('users/'+d.udel,'DELETE');loadUsers()}catch(x){warn(x.message)}}});
 /* courier save (auto-saves when the status or tracking number changes) */
 /* popups (SweetAlert2) */
-const ask=(title,text,btn)=>Swal.fire({title,text,icon:'question',showCancelButton:true,confirmButtonText:btn||'Yes',cancelButtonText:'Cancel',confirmButtonColor:'#6d3ee0',cancelButtonColor:'#9a95ad',reverseButtons:true}).then(r=>r.isConfirmed);
+const ask=(title,text,btn)=>Swal.fire({title,text,icon:'question',showCancelButton:true,confirmButtonText:btn||'Yes',cancelButtonText:'Cancel',confirmButtonColor:'#bf4cb1',cancelButtonColor:'#9a95ad',reverseButtons:true}).then(r=>r.isConfirmed);
 const askDel=(title,text)=>Swal.fire({title,text,icon:'warning',showCancelButton:true,confirmButtonText:'Yes, delete',cancelButtonText:'Cancel',confirmButtonColor:'#e0346f',cancelButtonColor:'#9a95ad',reverseButtons:true}).then(r=>r.isConfirmed);
-const warn=(text,title)=>Swal.fire({icon:'error',title:title||'Oops...',text,confirmButtonColor:'#6d3ee0'});
+const warn=(text,title)=>Swal.fire({icon:'error',title:title||'Oops...',text,confirmButtonColor:'#bf4cb1'});
 const TOAST=Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2200,timerProgressBar:true});
 function toast(m){TOAST.fire({icon:'success',title:m})}
 async function saveCourier(id){const o=orders.find(x=>x.id===id);if(!o)return;const cs=$('#cs_'+id).value;
@@ -402,24 +402,24 @@ const addr=o=>o.address?`\nDelivery address: ${o.address.replace(/\n/g,', ')}`:'
 const desc=o=>`${o.item||'artwork'}${o.size?' ('+o.size+')':''}`;
 // Two template sets: Cash on delivery (advance + balance to courier) and Full payment (everything paid before shipping)
 const WA_T=o=>{const cod=o.payType==='cod',bal=money(o.remaining),hi=`Hi ${o.customer}, this is ${BUSINESS}.`,
-  trk=o.trackingNo?`\nTracking number: ${o.trackingNo}`:'',ask=o.address?'':'\n\nPlease send us your delivery address.';
+  trk=o.trackingNo?`\nTracking number: ${o.trackingNo}`:'',dn=`\n\nNote: delivery charges are not included in the total. The delivery fee is paid to the courier when your parcel arrives.`,ask=o.address?'':'\n\nPlease send us your delivery address.';
   if(cod)return[
-  {k:'Order confirmed (COD)',s:'invoice',t:`${hi} Thank you for your order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nAdvance paid: ${money(o.advance)}\nBalance to pay on delivery: ${bal}\n\nPlease pay the balance in cash to the courier when your parcel arrives.${addr(o)}${ask}`},
+  {k:'Order confirmed (COD)',s:'invoice',t:`${hi} Thank you for your order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nAdvance paid: ${money(o.advance)}\nBalance to pay on delivery: ${bal}\n\nPlease pay the balance in cash to the courier when your parcel arrives.${dn}${addr(o)}${ask}`},
   {k:'Advance payment request',s:'payrem',t:`${hi} To confirm order ${o.orderNo}, please send the advance payment. The remaining balance can be paid in cash to the courier on delivery.${bankTxt()}\n\nPlease send the payment slip once paid. Thank you!`},
   {k:'Advance received',s:'paid',t:`${hi} We have received your advance of ${money(o.advance)} for order ${o.orderNo}. The balance of ${bal} will be collected on delivery. Thank you!`},
   {k:'Order update',s:'update',t:`${hi} Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`},
   {k:'Artwork ready (COD)',s:'ready',t:`${hi} Your artwork for order ${o.orderNo} is ready! We will send it by courier (cash on delivery). Please keep ${bal} ready to pay the courier on arrival.${addr(o)}${ask}`},
-  {k:'Shipped (COD)',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nPlease keep ${bal} in cash ready for the courier. It should reach you soon!`},
-  {k:'Out for delivery (COD)',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it and keep ${bal} ready to pay the courier.`},
+  {k:'Shipped (COD)',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nPlease keep ${bal} in cash ready for the courier. The delivery fee is also paid to the courier on arrival. It should reach you soon!`},
+  {k:'Out for delivery (COD)',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it and keep ${bal} ready to pay the courier, along with the delivery fee.`},
   {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for your payment and for choosing us! We'd love to hear what you think of your artwork.`}];
   return[
-  {k:'Invoice / payment details',s:'invoice',t:`${hi} Here is the invoice for order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nPaid: ${money(o.advance)}\nBalance: ${o.remaining>0?bal:'Paid in full'}${o.remaining>0?`\n\nPlease complete the full payment so we can ship your order.${bankTxt()}\n\nPlease send the payment slip once paid. Thank you!`:'\n\nThank you for your order!'}`},
+  {k:'Invoice / payment details',s:'invoice',t:`${hi} Here is the invoice for order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nPaid: ${money(o.advance)}\nBalance: ${o.remaining>0?bal:'Paid in full'}${o.remaining>0?`\n\nPlease complete the full payment so we can ship your order.${bankTxt()}\n\nPlease send the payment slip once paid. Thank you!`:'\n\nThank you for your order!'}${dn}`},
   {k:'Payment reminder',s:'payrem',t:`${hi} A balance of ${bal} is pending for order ${o.orderNo}. We will ship your artwork once the full payment is received.${bankTxt()}\n\nThank you!`},
   {k:'Payment received',s:'paid',t:`${hi} We have received your full payment for order ${o.orderNo}. Thank you so much! We'll update you when your artwork is ready.`},
   {k:'Order update',s:'update',t:`${hi} Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`},
   {k:'Artwork ready',s:'ready',t:`${hi} Your artwork for order ${o.orderNo} is ready!${o.remaining>0?` Please complete the balance of ${bal} so we can ship it.${bankTxt()}`:' We will send it by courier shortly.'}${addr(o)}${ask}`},
-  {k:'Shipped',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nIt should reach you soon!`},
-  {k:'Out for delivery',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it. Nothing more to pay - it is fully paid.`},
+  {k:'Shipped',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nIt should reach you soon!${dn}`},
+  {k:'Out for delivery',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it. Your order is fully paid - only the delivery fee is payable to the courier.`},
   {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for choosing us! We'd love to hear what you think of your artwork.`}]};
 let waOrder=null;
 function openWA(o){if(!o)return;if(!waNum(o.phone)){warn('This order has no phone number. Add one using Edit.','No phone number');return}
@@ -452,6 +452,7 @@ $('#exp').onclick=exportExcel;
 /* invoice */
 // Fill these in and they will appear on every invoice (leave '' to hide a line)
 const INVOICE={website:'',email:'',phone:'',bank:'BOC - Piliyandala',accName:'UBK Samudika',accNo:'96060236',
+  deliveryNote:'Delivery charges are not included in this total. The delivery fee is paid by the customer directly to the courier when the parcel is delivered.',
   terms:'Full payment must be received before the artwork is completed and shipped. Thank you for choosing Paperthreads!'};
 function invoice(o){
   const w=window.open('','_blank');if(!w){warn('Please allow pop-ups in your browser to open the invoice.','Pop-up blocked');return}
@@ -466,9 +467,9 @@ function invoice(o){
   <style>
   @page{size:A4;margin:0}
   *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  :root{--d:#2d1a7a;--p:#6d3ee0;--a1:#a78bfa;--g:#e7e2f4;--ink:#1f1a33;--mute:#7b7592}
-  body{margin:0;background:#d9d5e8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink)}
-  .pg{position:relative;width:210mm;height:297mm;margin:16px auto;background:#fff;overflow:hidden;box-shadow:0 10px 40px #2d1a7a33}
+  :root{--d:#5a1f78;--p:#bf4cb1;--a1:#ee79c0;--g:#efdcf3;--ink:#211521;--mute:#807a86}
+  body{margin:0;background:#ead3ef;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink)}
+  .pg{position:relative;width:210mm;height:297mm;margin:16px auto;background:#fff;overflow:hidden;box-shadow:0 10px 40px #5a1f7833}
   .tr{position:absolute;right:0;top:0;width:118mm;height:48mm;background:var(--d);border-bottom-left-radius:100% 100%;box-shadow:0 3mm 4mm -2mm #0003}
   .tc{position:absolute;left:79mm;top:-9mm;width:25mm;height:25mm;border-radius:50%;background:linear-gradient(135deg,var(--a1),var(--p));box-shadow:0 2mm 3mm #0003}
   .ttl{position:absolute;right:16mm;top:24mm;color:#fff;font-size:30pt;font-weight:700;letter-spacing:.5mm}
@@ -513,6 +514,7 @@ function invoice(o){
         <div>
           <div class="tot"><div><span>Subtotal</span><span>${money(o.total)}</span></div><div><span>Advance paid</span><span>${money(o.advance)}</span></div></div>
           <div class="pill"><span>${paid?'PAID IN FULL':(o.payType==='cod'?'BALANCE ON DELIVERY (COD)':'BALANCE DUE')}</span><span>${money(o.remaining)}</span></div>
+          <p style="margin:2mm 0 0;font-size:7.5pt;line-height:1.35;color:var(--mute);text-align:right">* ${esc(I.deliveryNote)}</p>
           <div class="bill"><h3>BILL TO</h3><p>${esc(o.customer)}</p>${o.phone?`<p><small>${esc(o.phone)}</small></p>`:''}${o.address?`<p><small>${esc(o.address).replace(/\n/g,'<br>')}</small></p>`:''}</div>
         </div>
       </div>

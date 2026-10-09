@@ -126,6 +126,7 @@ function cleanOrder(b) {
     notes: String(b.notes || '').trim(),
     standRent: b.standRent === true || b.standRent === 'true',
     standFee: (b.standRent === true || b.standRent === 'true') ? num(b.standFee) : 0,
+    standDeposit: (b.standRent === true || b.standRent === 'true') ? num(b.standDeposit) : 0, // refundable - not part of earnings
     paintRent: b.paintRent === true || b.paintRent === 'true',
     paintFee: (b.paintRent === true || b.paintRent === 'true') ? num(b.paintFee) : 0,
     address: String(b.address || '').trim(),
@@ -163,7 +164,9 @@ app.put('/api/orders/:id', auth, (req, res) => {
   // full-payment customers must pay everything before the order is completed (COD customers pay the balance on delivery)
   if (req.body.status === 'Completed' && was.status !== 'Completed' && was.status !== 'Delivered' && o.payType === 'full' && o.remaining > 0)
     return res.status(400).json({ error: 'Full payment must be received before completing this order (balance ' + o.remaining + ')' });
-  Object.assign(was, o); // trackingNo is not touched here, so editing never wipes it
+  Object.assign(was, o);
+  if (!was.standRent) { delete was.standReturned; delete was.standReturnedAt; delete was.depositRefunded; }
+  // trackingNo is not touched here, so editing never wipes it
   // Delivered is only set from the Courier tab, and can't be changed here
   if (was.status !== 'Delivered') was.status = EDITABLE.includes(req.body.status) ? req.body.status : was.status;
   syncCourier(was); save(); res.json(was);
@@ -173,6 +176,19 @@ app.post('/api/orders/:id/pay', auth, (req, res) => {
   const o = db.orders.find(x => x.id === req.params.id);
   if (!o) return res.status(404).json({ error: 'Order not found' });
   o.advance = o.total; o.remaining = 0; o.paidAt = todayStr();
+  save(); res.json(o);
+});
+// Stand returned by the customer -> the deposit is refunded to them
+app.post('/api/orders/:id/stand', auth, (req, res) => {
+  const o = db.orders.find(x => x.id === req.params.id);
+  if (!o) return res.status(404).json({ error: 'Order not found' });
+  if (!o.standRent) return res.status(400).json({ error: 'This order has no stand rental' });
+  if (req.body.returned === false) { delete o.standReturned; delete o.standReturnedAt; delete o.depositRefunded; }
+  else {
+    if (o.status !== 'Delivered') return res.status(400).json({ error: 'The stand can only be returned after the order is delivered' });
+    o.standReturned = true; o.standReturnedAt = todayStr();
+    o.depositRefunded = Math.min(num(req.body.refund), o.standDeposit || 0);
+  }
   save(); res.json(o);
 });
 // Courier tab: tracking number + courier status

@@ -23,22 +23,78 @@ const hash = (pw, salt = crypto.randomBytes(16).toString('hex')) =>
   salt + ':' + crypto.scryptSync(pw, salt, 32).toString('hex');
 const verify = (pw, stored) => hash(pw, stored.split(':')[0]) === stored;
 
+// Data lives in PostgreSQL when DATABASE_URL is set (use this on Render / any host with a temporary disk).
+// Without DATABASE_URL it falls back to the local data.json file (fine on your own PC).
+const USE_PG = !!process.env.DATABASE_URL;
+let pool = null;
 let db = { users: [], orders: [], seq: 0 };
-if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-if (!db.users.length) {
-  db.users.push({ id: crypto.randomUUID(), name: 'Admin', username: 'admin', role: 'admin', password: hash('admin123') });
-  console.log('First run: login with admin / admin123 (change it in Users page)');
+let writing = Promise.resolve(), saveError = null;
+
+async function persist(snap) {
+  if (USE_PG) {
+    await pool.query(
+      'INSERT INTO app_state (id, data, updated_at) VALUES (1, $1::jsonb, now()) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()',
+      [snap]);
+  } else fs.writeFileSync(DB_FILE, snap);
 }
-const save = () => fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
-save();
+// writes are queued one after another so they can never overlap or arrive out of order
+const save = () => {
+  const snap = JSON.stringify(db);
+  writing = writing.then(() => persist(snap)).then(() => { saveError = null; })
+    .catch(e => { saveError = e; console.error('Save failed:', e.message); });
+};
+// a change is only confirmed to the browser after it has really been saved
+app.use((req, res, next) => {
+  if (req.method === 'GET') return next();
+  const send = res.json.bind(res);
+  res.json = body => {
+    writing.then(() => {
+      if (saveError) { res.status(500); return send({ error: 'Could not save to the database. Please try again.' }); }
+      send(body);
+    });
+    return res;
+  };
+  next();
+});
+
+async function initDb() {
+  if (USE_PG) {
+    const { Pool } = require('pg');
+    pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL) ? false : { rejectUnauthorized: false } });
+    pool.on('error', e => console.error('DB connection dropped (will reconnect):', e.message));
+    await pool.query('CREATE TABLE IF NOT EXISTS app_state (id INT PRIMARY KEY, data JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())');
+    const r = await pool.query('SELECT data FROM app_state WHERE id = 1');
+    if (r.rows.length) db = r.rows[0].data;
+    else if (fs.existsSync(DB_FILE)) { db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); console.log('Imported existing data.json into the database'); }
+    console.log('Using PostgreSQL database');
+  } else {
+    if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    console.log('Using local file ' + DB_FILE + ' (set DATABASE_URL to use a database)');
+  }
+  db.users = db.users || []; db.orders = db.orders || [];
+  if (!db.users.length) {
+    db.users.push({ id: crypto.randomUUID(), name: 'Admin', username: 'admin', role: 'admin', password: hash('admin123') });
+    console.log('First run: login with admin / admin123 (change it in Users page)');
+  }
+  if (!db.secret) db.secret = crypto.randomBytes(32).toString('hex');
+  save(); await writing;
+  if (saveError) throw saveError;
+}
 
 // ---------- auth ----------
-const sessions = new Map();
+// login tokens are signed with a secret stored in the database, so people stay logged in after a restart
 const publicUser = ({ password, ...u }) => u;
+const sign = p => crypto.createHmac('sha256', db.secret).update(p).digest('hex');
+const makeToken = uid => { const p = uid + '.' + (Date.now() + 30 * 864e5); return p + '.' + sign(p); };
+function readToken(t) {
+  const [uid, exp, sig] = String(t || '').split('.');
+  if (!sig || +exp < Date.now()) return null;
+  const good = sign(uid + '.' + exp);
+  return sig.length === good.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good)) ? uid : null;
+}
 const auth = (req, res, next) => {
-  const u = sessions.get((req.headers.authorization || '').replace('Bearer ', ''));
-  if (!u) return res.status(401).json({ error: 'Please log in' });
-  req.user = db.users.find(x => x.id === u);
+  const u = readToken((req.headers.authorization || '').replace('Bearer ', ''));
+  req.user = u && db.users.find(x => x.id === u);
   if (!req.user) return res.status(401).json({ error: 'Please log in' });
   next();
 };
@@ -49,14 +105,9 @@ app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   const u = db.users.find(x => x.username === username);
   if (!u || !verify(password || '', u.password)) return res.status(400).json({ error: 'Wrong username or password' });
-  const token = crypto.randomBytes(24).toString('hex');
-  sessions.set(token, u.id);
-  res.json({ token, user: publicUser(u) });
+  res.json({ token: makeToken(u.id), user: publicUser(u) });
 });
-app.post('/api/logout', auth, (req, res) => {
-  sessions.delete((req.headers.authorization || '').replace('Bearer ', ''));
-  res.json({ ok: true });
-});
+app.post('/api/logout', auth, (req, res) => res.json({ ok: true }));
 app.get('/api/me', auth, (req, res) => res.json(publicUser(req.user)));
 
 // ---------- orders CRUD ----------
@@ -78,6 +129,7 @@ function cleanOrder(b) {
     paintRent: b.paintRent === true || b.paintRent === 'true',
     paintFee: (b.paintRent === true || b.paintRent === 'true') ? num(b.paintFee) : 0,
     address: String(b.address || '').trim(),
+    payType: b.payType === 'cod' ? 'cod' : 'full', // full = pays everything before shipping, cod = advance now + balance on delivery
   };
 }
 const COURIER = ['Ready to ship', 'Handed to courier', 'In transit', 'Out for delivery', 'Delivered'];
@@ -108,8 +160,8 @@ app.put('/api/orders/:id', auth, (req, res) => {
   if (!o.orderNo) return res.status(400).json({ error: 'Order number is required' });
   if (!o.customer) return res.status(400).json({ error: 'Customer name is required' });
   const d2 = dupOf(o.orderNo, was.id); if (d2) return res.status(400).json({ error: dupMsg(d2) });
-  // an order can only be completed after full payment is received
-  if (req.body.status === 'Completed' && was.status !== 'Completed' && was.status !== 'Delivered' && o.remaining > 0)
+  // full-payment customers must pay everything before the order is completed (COD customers pay the balance on delivery)
+  if (req.body.status === 'Completed' && was.status !== 'Completed' && was.status !== 'Delivered' && o.payType === 'full' && o.remaining > 0)
     return res.status(400).json({ error: 'Full payment must be received before completing this order (balance ' + o.remaining + ')' });
   Object.assign(was, o); // trackingNo is not touched here, so editing never wipes it
   // Delivered is only set from the Courier tab, and can't be changed here
@@ -130,9 +182,19 @@ app.patch('/api/orders/:id', auth, (req, res) => {
   if (o.status !== 'Completed' && o.status !== 'Delivered') return res.status(400).json({ error: 'Only completed orders can go to the courier' });
   if (req.body.trackingNo !== undefined) o.trackingNo = String(req.body.trackingNo).trim();
   if (COURIER.includes(req.body.courierStatus)) {
+    const was = o.status;
     o.courierStatus = req.body.courierStatus;
     o.status = o.courierStatus === 'Delivered' ? 'Delivered' : 'Completed';
     syncCourier(o);
+    // COD: when the parcel is delivered the courier has collected the balance
+    if (o.status === 'Delivered' && was !== 'Delivered' && o.payType === 'cod' && o.remaining > 0) {
+      o.advanceBeforeCod = o.advance; o.advance = o.total; o.remaining = 0; o.codCollected = true; o.paidAt = todayStr();
+    }
+    // moved back out of Delivered: undo the COD collection
+    if (o.status !== 'Delivered' && was === 'Delivered' && o.codCollected) {
+      o.advance = o.advanceBeforeCod || 0; o.remaining = o.total - o.advance;
+      delete o.codCollected; delete o.advanceBeforeCod; delete o.paidAt;
+    }
   }
   save(); res.json(o);
 });
@@ -171,6 +233,7 @@ app.delete('/api/users/:id', auth, adminOnly, (req, res) => {
 // Copies data.json into the "backups" folder on start and every 6 hours (one file per day, last 14 days kept)
 const BK_DIR = path.join(DATA_DIR, 'backups');
 function backup() {
+  if (!fs.existsSync(DB_FILE)) return;
   try {
     fs.mkdirSync(BK_DIR, { recursive: true });
     fs.copyFileSync(DB_FILE, path.join(BK_DIR, 'data-' + todayStr() + '.json'));
@@ -178,8 +241,9 @@ function backup() {
       .forEach(f => fs.unlinkSync(path.join(BK_DIR, f)));
   } catch (e) { console.log('Backup failed:', e.message); }
 }
-backup();
-setInterval(backup, 6 * 60 * 60 * 1000);
+if (!USE_PG) { backup(); setInterval(backup, 6 * 60 * 60 * 1000); }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Paperthreads running at http://localhost:' + PORT));
+initDb()
+  .then(() => app.listen(PORT, () => console.log('Paperthreads running on port ' + PORT)))
+  .catch(e => { console.error('Could not start (database problem):', e.message); process.exit(1); });

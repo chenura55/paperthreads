@@ -200,6 +200,7 @@ dialog h3{margin:0 0 16px;font-size:18px}
     <label>Artwork / description<input class="in" id="o_i" placeholder="e.g. Pencil portrait"></label>
     <label>Size<select class="in" id="o_sz"></select></label>
     <label id="o_scw" class="hide">Custom size<input class="in" id="o_sc" placeholder="e.g. 40×40 cm"></label>
+    <label>Payment type<select class="in" id="o_pt"><option value="full">Full payment (pays before shipping)</option><option value="cod">Cash on delivery (advance now, balance on delivery)</option></select></label>
     <label>Total payment<input class="in" id="o_t" type="number" min="0" step="0.01" required></label>
     <label>Advance payment<input class="in" id="o_a" type="number" min="0" step="0.01" value="0"></label>
     <label>Remaining payment<span style="display:flex;gap:8px;align-items:center"><input class="in" id="o_r" disabled><button type="button" class="btn ok sm" id="o_pay" style="margin-top:5px;white-space:nowrap">Full payment</button></span></label>
@@ -288,7 +289,7 @@ function rentCell(o){const t=[];if(o.standRent)t.push('Stand'+(o.standFee>0?' '+
 function table(list,full){
   if(!list.length)return '<div class="empty">No orders here yet.</div>';
   return `<table><thead><tr><th>Order</th><th>Customer</th><th>Size</th>${full?'<th>Tracking no</th><th>Rentals</th><th>Deadline</th>':''}<th class="r">Advance</th><th class="r">Remaining</th><th class="r">Total</th><th>Status</th>${full?'<th></th>':''}</tr></thead><tbody>`+
-  list.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}${o.item?`<span class="sub2">${esc(o.item)}</span>`:''}</td><td>${esc(o.size)||'—'}</td>
+  list.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}${o.payType==='cod'?' <span class="tag amber">COD</span>':''}${o.item?`<span class="sub2">${esc(o.item)}</span>`:''}</td><td>${esc(o.size)||'—'}</td>
   ${full?`<td>${esc(o.trackingNo)||'—'}</td><td>${rentCell(o)}</td><td>${esc(o.deadline)||'—'}${deadlineTag(o)}</td>`:''}
   <td class="r">${money(o.advance)}</td><td class="r">${o.remaining>0?`<b style="color:var(--bad)">${money(o.remaining)}</b>`:money(0)}</td><td class="r">${money(o.total)}</td><td>${stTag(o)}</td>
   ${full?`<td><div class="acts">${o.remaining>0&&o.status!=='Delivered'?`<button class="btn ok sm" data-pay="${o.id}">Full payment</button>`:''}<button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button><button class="btn ghost sm" data-inv="${o.id}">Invoice</button><button class="btn ghost sm" data-edit="${o.id}">Edit</button><button class="btn del sm" data-del="${o.id}">Delete</button></div></td>`:''}</tr>`).join('')+'</tbody></table>'}
@@ -303,11 +304,11 @@ function courierTables(){
   const ready=orders.filter(o=>o.status==='Completed'),done=orders.filter(o=>o.status==='Delivered').sort((a,b)=>(b.deliveredAt||'').localeCompare(a.deliveredAt||''));
   $('#cc').textContent=ready.length+' to ship';
   $('#ctable').innerHTML=!ready.length?'<div class="empty">Nothing waiting. Orders set to Completed will show up here.</div>':
-  '<table style="min-width:900px"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>Tracking number</th><th>Courier status</th><th class="r">Balance</th><th></th></tr></thead><tbody>'+ready.map(o=>{const cs=o.courierStatus||'Ready to ship';return `<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}<span class="sub2">${esc(o.size)}</span>${o.address?`<span class="sub2" style="white-space:normal;max-width:240px">${esc(o.address)}</span>`:''}</td><td>${esc(o.phone)||'—'}</td>
+  '<table style="min-width:900px"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>Tracking number</th><th>Courier status</th><th class="r">Balance</th><th></th></tr></thead><tbody>'+ready.map(o=>{const cs=o.courierStatus||'Ready to ship';return `<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}${o.payType==='cod'?' <span class="tag amber">COD</span>':''}<span class="sub2">${esc(o.size)}</span>${o.address?`<span class="sub2" style="white-space:normal;max-width:240px">${esc(o.address)}</span>`:''}</td><td>${esc(o.phone)||'—'}</td>
   <td><input class="in" style="margin:0;padding:7px 10px;width:170px" id="t_${o.id}" data-trk="${o.id}" value="${esc(o.trackingNo)}" placeholder="Tracking no"></td>
   <td><select class="in" style="margin:0;padding:7px 10px;width:170px" id="cs_${o.id}" data-cst="${o.id}">${CST.map(c=>`<option ${c===cs?'selected':''}>${c}</option>`).join('')}</select></td>
-  <td class="r">${o.remaining>0?`<b style="color:var(--bad)">${money(o.remaining)}</b>`:'Paid'}</td><td><div class="acts"><button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button><button class="btn sm" data-upd="${o.id}">Save</button></div></td></tr>`}).join('')+'</tbody></table>';
-  $('#dtable').innerHTML=!done.length?'<div class="empty">No delivered orders yet.</div>':'<table style="min-width:640px"><thead><tr><th>Order</th><th>Customer</th><th>Tracking no</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>'+done.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}</td><td>${esc(o.trackingNo)||'—'}</td><td>${esc(o.deliveredAt)||'—'}</td><td>${stTag(o)}</td><td><div class="acts"><button class="btn ghost sm" data-undo="${o.id}">Undo</button></div></td></tr>`).join('')+'</tbody></table>'}
+  <td class="r">${o.remaining>0?(o.payType==='cod'?`<b style="color:var(--bad)">Collect ${money(o.remaining)}</b><span class="sub2">Cash on delivery</span>`:`<b style="color:var(--bad)">${money(o.remaining)}</b>`):'Paid'}</td><td><div class="acts"><button class="btn ghost sm" data-wa="${o.id}">WhatsApp</button><button class="btn sm" data-upd="${o.id}">Save</button></div></td></tr>`}).join('')+'</tbody></table>';
+  $('#dtable').innerHTML=!done.length?'<div class="empty">No delivered orders yet.</div>':'<table style="min-width:640px"><thead><tr><th>Order</th><th>Customer</th><th>Tracking no</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>'+done.map(o=>`<tr><td><b>${esc(o.orderNo)}</b></td><td>${esc(o.customer)}</td><td>${esc(o.trackingNo)||'—'}</td><td>${esc(o.deliveredAt)||'—'}</td><td>${stTag(o)}${o.codCollected?'<span class="sub2">COD collected</span>':''}</td><td><div class="acts"><button class="btn ghost sm" data-undo="${o.id}">Undo</button></div></td></tr>`).join('')+'</tbody></table>'}
 /* render */
 function renderAll(){
   const now=new Date(),mk=now.toISOString().slice(0,7),rm=reminders();
@@ -340,7 +341,7 @@ function calc(){const rem=Math.max(0,(+$('#o_t').value||0)-(+$('#o_a').value||0)
   $('#o_pay').classList.toggle('hide',rem<=0);
   // an order can only be set to Completed once it is fully paid
   const c=[...$('#o_st').options].find(x=>x.value==='Completed');
-  if(c){const lock=rem>0&&editStatus!=='Completed';c.disabled=lock;c.textContent=lock?'Completed (needs full payment)':'Completed';
+  if(c){const lock=rem>0&&$('#o_pt').value==='full'&&editStatus!=='Completed';c.disabled=lock;c.textContent=lock?'Completed (needs full payment)':'Completed';
     if(lock&&$('#o_st').value==='Completed')$('#o_st').value=editStatus||'Pending'}}
 $('#o_pay').onclick=()=>{$('#o_a').value=+$('#o_t').value||0;calc()};
 const fee=()=>($('#o_sr').checked?(+$('#o_sf').value||0):0)+($('#o_pr').checked?(+$('#o_pf').value||0):0);
@@ -349,17 +350,17 @@ function sizeChanged(){const v=$('#o_sz').value,other=v==='__other';$('#o_scw').
   if(!other){$('#o_t').value=SIZES.find(s=>s[0]===v)[1]+fee()}calc()}
 function feeChanged(){const f=fee();$('#o_sfw').classList.toggle('hide',!$('#o_sr').checked);$('#o_pfw').classList.toggle('hide',!$('#o_pr').checked);$('#o_t').value=Math.max(0,(+$('#o_t').value||0)+f-prevFee);prevFee=f;calc()}
 $('#o_sr').onchange=$('#o_sf').oninput=$('#o_pr').onchange=$('#o_pf').oninput=feeChanged;
-$('#o_sz').onchange=sizeChanged;$('#o_t').oninput=$('#o_a').oninput=calc;
+$('#o_sz').onchange=sizeChanged;$('#o_t').oninput=$('#o_a').oninput=$('#o_pt').onchange=calc;
 function openOrder(o){editId=o?.id||null;editStatus=o?.status||'';$('#odt').textContent=o?'Edit order':'New order';$('#oe').textContent='';
   $('#o_no').value=o?.orderNo||'';$('#o_no').placeholder='e.g. '+nextNo();$('#o_c').value=o?.customer||'';$('#o_ph').value=o?.phone||'';$('#o_i').value=o?.item||'';
   const preset=o&&SIZES.some(s=>s[0]===o.size);$('#o_sz').value=o?(preset?o.size:'__other'):SIZES[0][0];
   $('#o_scw').classList.toggle('hide',!(o&&!preset));$('#o_sc').value=o&&!preset?o.size:'';
   $('#o_t').value=o?o.total:SIZES[0][1];$('#o_sr').checked=!!o?.standRent;$('#o_sf').value=o?.standFee||'';$('#o_sfw').classList.toggle('hide',!o?.standRent);$('#o_pr').checked=!!o?.paintRent;$('#o_pf').value=o?.paintFee||'';$('#o_pfw').classList.toggle('hide',!o?.paintRent);$('#o_ad').value=o?.address||'';prevFee=(o?.standRent?(+o.standFee||0):0)+(o?.paintRent?(+o.paintFee||0):0);$('#o_a').value=o?.advance??0;$('#o_st').innerHTML=(o?.status==='Delivered'?['Delivered']:['Pending','In progress','Completed']).map(s=>`<option value="${s}">${s}</option>`).join('');$('#o_st').value=o?.status||'Pending';$('#o_st').disabled=!o||o.status==='Delivered';$('#o_stl').textContent=!o?'Status (locked as Pending for new orders)':o.status==='Delivered'?'Status (set from Courier tab)':'Status';
-  $('#o_d').value=o?.orderDate||today();$('#o_dl').value=o?.deadline||'';$('#o_n').value=o?.notes||'';calc();od.showModal()}
+  $('#o_d').value=o?.orderDate||today();$('#o_dl').value=o?.deadline||'';$('#o_n').value=o?.notes||'';$('#o_pt').value=o?.payType||'full';calc();od.showModal()}
 $('#newo').onclick=()=>openOrder();
 $('#of').onsubmit=async e=>{e.preventDefault();
   const size=$('#o_sz').value==='__other'?$('#o_sc').value:$('#o_sz').value;
-  const b={orderNo:$('#o_no').value,customer:$('#o_c').value,phone:$('#o_ph').value,size,item:$('#o_i').value,total:$('#o_t').value,advance:$('#o_a').value,status:$('#o_st').value,orderDate:$('#o_d').value,deadline:$('#o_dl').value,standRent:$('#o_sr').checked,standFee:$('#o_sf').value,paintRent:$('#o_pr').checked,paintFee:$('#o_pf').value,address:$('#o_ad').value,notes:$('#o_n').value};
+  const b={orderNo:$('#o_no').value,customer:$('#o_c').value,phone:$('#o_ph').value,size,item:$('#o_i').value,total:$('#o_t').value,advance:$('#o_a').value,status:$('#o_st').value,orderDate:$('#o_d').value,deadline:$('#o_dl').value,payType:$('#o_pt').value,standRent:$('#o_sr').checked,standFee:$('#o_sf').value,paintRent:$('#o_pr').checked,paintFee:$('#o_pf').value,address:$('#o_ad').value,notes:$('#o_n').value};
   try{editId?await api('orders/'+editId,'PUT',b):await api('orders','POST',b);od.close();await load()}catch(x){$('#oe').textContent=x.message;od.scrollTop=0;if(/order number/i.test(x.message))$('#o_no').focus()}};
 document.addEventListener('click',async e=>{const t=e.target,g=t.closest('[data-go],[data-sf],[data-go-s],[data-close],[data-edit],[data-inv],[data-del],[data-uedit],[data-udel],[data-upd],[data-undo],[data-pay],[data-wa]');if(!g)return;const d=g.dataset;
   if(d.go)go(d.go,'');
@@ -383,7 +384,7 @@ const warn=(text,title)=>Swal.fire({icon:'error',title:title||'Oops...',text,con
 const TOAST=Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2200,timerProgressBar:true});
 function toast(m){TOAST.fire({icon:'success',title:m})}
 async function saveCourier(id){const o=orders.find(x=>x.id===id);if(!o)return;const cs=$('#cs_'+id).value;
-  if(cs==='Delivered'&&!await ask('Mark as delivered?',`Mark ${o.orderNo} as delivered to ${o.customer}?`,'Yes, delivered')){$('#cs_'+id).value=o.courierStatus||'Ready to ship';return}
+  if(cs==='Delivered'&&!await ask('Mark as delivered?',o.payType==='cod'&&o.remaining>0?`Parcel delivered to ${o.customer} and ${money(o.remaining)} cash collected by the courier?`:`Mark ${o.orderNo} as delivered to ${o.customer}?`,o.payType==='cod'&&o.remaining>0?'Yes, delivered & paid':'Yes, delivered')){$('#cs_'+id).value=o.courierStatus||'Ready to ship';return}
   try{await api('orders/'+id,'PATCH',{trackingNo:$('#t_'+id).value,courierStatus:cs});await load();toast('Saved '+o.orderNo+' — '+cs)}catch(x){warn(x.message);await load()}}
 document.addEventListener('change',e=>{const id=e.target.dataset&&(e.target.dataset.trk||e.target.dataset.cst);if(id)saveCourier(id)});
 /* users */
@@ -397,20 +398,37 @@ $('#uf').onsubmit=async e=>{e.preventDefault();const b={name:$('#u_n').value,use
 const WA_CC='94'; // country code (Sri Lanka)
 const waNum=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);else if(d.startsWith('0'))d=WA_CC+d.slice(1);else if(d.length<=9)d=WA_CC+d;return d};
 const bankTxt=()=>`\n\nBank details:\nAccount name: ${INVOICE.accName}\nBank: ${INVOICE.bank}\nAccount no: ${INVOICE.accNo}`;
-const WA_T=o=>({
-  'Invoice':`Hi ${o.customer}, this is ${BUSINESS}. Here is your invoice for order ${o.orderNo}${o.item?` (${o.item}${o.size?', '+o.size:''})`:''}.\n\nTotal: ${money(o.total)}\nAdvance paid: ${money(o.advance)}\nBalance: ${o.remaining>0?money(o.remaining):'Paid in full'}${o.remaining>0?bankTxt()+'\n\nPlease send the payment slip once paid. Thank you!':'\n\nThank you for your order!'}`,
-  'Order update':`Hi ${o.customer}, this is ${BUSINESS}. Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`,
-  'Payment reminder':`Hi ${o.customer}, this is ${BUSINESS}. A balance of ${money(o.remaining)} is pending for order ${o.orderNo}. Please complete the payment when you can.${bankTxt()}\n\nThank you!`,
-  'Payment received':`Hi ${o.customer}, we have received your full payment for order ${o.orderNo}. Thank you so much!`,
-  'Artwork ready':`Hi ${o.customer}, your artwork for order ${o.orderNo} is ready!${o.remaining>0?` The balance of ${money(o.remaining)} is due before we ship it.${bankTxt()}`:''}${o.address?'':' Please send us your delivery address.'}`,
-  'Shipped':`Hi ${o.customer}, your order ${o.orderNo} has been handed to the courier.${o.trackingNo?` Tracking number: ${o.trackingNo}.`:''} It should reach you soon!`
-});
+const addr=o=>o.address?`\nDelivery address: ${o.address.replace(/\n/g,', ')}`:'';
+const desc=o=>`${o.item||'artwork'}${o.size?' ('+o.size+')':''}`;
+// Two template sets: Cash on delivery (advance + balance to courier) and Full payment (everything paid before shipping)
+const WA_T=o=>{const cod=o.payType==='cod',bal=money(o.remaining),hi=`Hi ${o.customer}, this is ${BUSINESS}.`,
+  trk=o.trackingNo?`\nTracking number: ${o.trackingNo}`:'',ask=o.address?'':'\n\nPlease send us your delivery address.';
+  if(cod)return[
+  {k:'Order confirmed (COD)',s:'invoice',t:`${hi} Thank you for your order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nAdvance paid: ${money(o.advance)}\nBalance to pay on delivery: ${bal}\n\nPlease pay the balance in cash to the courier when your parcel arrives.${addr(o)}${ask}`},
+  {k:'Advance payment request',s:'payrem',t:`${hi} To confirm order ${o.orderNo}, please send the advance payment. The remaining balance can be paid in cash to the courier on delivery.${bankTxt()}\n\nPlease send the payment slip once paid. Thank you!`},
+  {k:'Advance received',s:'paid',t:`${hi} We have received your advance of ${money(o.advance)} for order ${o.orderNo}. The balance of ${bal} will be collected on delivery. Thank you!`},
+  {k:'Order update',s:'update',t:`${hi} Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`},
+  {k:'Artwork ready (COD)',s:'ready',t:`${hi} Your artwork for order ${o.orderNo} is ready! We will send it by courier (cash on delivery). Please keep ${bal} ready to pay the courier on arrival.${addr(o)}${ask}`},
+  {k:'Shipped (COD)',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nPlease keep ${bal} in cash ready for the courier. It should reach you soon!`},
+  {k:'Out for delivery (COD)',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it and keep ${bal} ready to pay the courier.`},
+  {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for your payment and for choosing us! We'd love to hear what you think of your artwork.`}];
+  return[
+  {k:'Invoice / payment details',s:'invoice',t:`${hi} Here is the invoice for order ${o.orderNo} - ${desc(o)}.\n\nTotal: ${money(o.total)}\nPaid: ${money(o.advance)}\nBalance: ${o.remaining>0?bal:'Paid in full'}${o.remaining>0?`\n\nPlease complete the full payment so we can ship your order.${bankTxt()}\n\nPlease send the payment slip once paid. Thank you!`:'\n\nThank you for your order!'}`},
+  {k:'Payment reminder',s:'payrem',t:`${hi} A balance of ${bal} is pending for order ${o.orderNo}. We will ship your artwork once the full payment is received.${bankTxt()}\n\nThank you!`},
+  {k:'Payment received',s:'paid',t:`${hi} We have received your full payment for order ${o.orderNo}. Thank you so much! We'll update you when your artwork is ready.`},
+  {k:'Order update',s:'update',t:`${hi} Your order ${o.orderNo} is in progress${o.deadline?` and will be ready by ${o.deadline}`:''}. We'll keep you posted!`},
+  {k:'Artwork ready',s:'ready',t:`${hi} Your artwork for order ${o.orderNo} is ready!${o.remaining>0?` Please complete the balance of ${bal} so we can ship it.${bankTxt()}`:' We will send it by courier shortly.'}${addr(o)}${ask}`},
+  {k:'Shipped',s:'shipped',t:`${hi} Your order ${o.orderNo} has been handed to the courier.${trk}\n\nIt should reach you soon!`},
+  {k:'Out for delivery',s:'out',t:`${hi} Your parcel for order ${o.orderNo} is out for delivery. Please be available to receive it. Nothing more to pay - it is fully paid.`},
+  {k:'Delivered - thank you',s:'delivered',t:`${hi} Your order ${o.orderNo} has been delivered. Thank you for choosing us! We'd love to hear what you think of your artwork.`}]};
 let waOrder=null;
 function openWA(o){if(!o)return;if(!waNum(o.phone)){warn('This order has no phone number. Add one using Edit.','No phone number');return}
-  waOrder=o;const T=WA_T(o),cs=o.courierStatus,def=o.status==='Delivered'||(o.status==='Completed'&&cs&&cs!=='Ready to ship')?'Shipped':o.status==='Completed'?'Artwork ready':'Order update';
-  $('#w_to').textContent=o.customer+' · +'+waNum(o.phone);
-  $('#w_t').innerHTML=Object.keys(T).map(k=>`<option ${k===def?'selected':''}>${k}</option>`).join('');$('#w_m').value=T[def];$('#wd').showModal()}
-$('#w_t').onchange=()=>{$('#w_m').value=WA_T(waOrder)[$('#w_t').value]};
+  waOrder=o;const T=WA_T(o),cs=o.courierStatus,
+  st=o.status==='Delivered'?'delivered':o.status==='Completed'?(cs==='Out for delivery'?'out':cs&&cs!=='Ready to ship'?'shipped':'ready'):(!(o.advance>0)?'invoice':'update'),
+  def=T.find(x=>x.s===st)||T[0];
+  $('#w_to').textContent=o.customer+' · +'+waNum(o.phone)+' · '+(o.payType==='cod'?'Cash on delivery':'Full payment');
+  $('#w_t').innerHTML=T.map(x=>`<option ${x===def?'selected':''}>${esc(x.k)}</option>`).join('');$('#w_m').value=def.t;$('#wd').showModal()}
+$('#w_t').onchange=()=>{const x=WA_T(waOrder).find(y=>y.k===$('#w_t').value);if(x)$('#w_m').value=x.t};
 $('#w_go').onclick=()=>{window.open('https://wa.me/'+waNum(waOrder.phone)+'?text='+encodeURIComponent($('#w_m').value),'_blank');$('#wd').close()};
 /* export to Excel */
 function exportExcel(){
@@ -494,7 +512,7 @@ function invoice(o){
         </div>
         <div>
           <div class="tot"><div><span>Subtotal</span><span>${money(o.total)}</span></div><div><span>Advance paid</span><span>${money(o.advance)}</span></div></div>
-          <div class="pill"><span>${paid?'PAID IN FULL':'BALANCE DUE'}</span><span>${money(o.remaining)}</span></div>
+          <div class="pill"><span>${paid?'PAID IN FULL':(o.payType==='cod'?'BALANCE ON DELIVERY (COD)':'BALANCE DUE')}</span><span>${money(o.remaining)}</span></div>
           <div class="bill"><h3>BILL TO</h3><p>${esc(o.customer)}</p>${o.phone?`<p><small>${esc(o.phone)}</small></p>`:''}${o.address?`<p><small>${esc(o.address).replace(/\n/g,'<br>')}</small></p>`:''}</div>
         </div>
       </div>

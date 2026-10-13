@@ -242,11 +242,6 @@ dialog h3{margin:0 0 16px;font-size:18px}
       <div class="card"><h3>Returned stands</h3><div class="tw" id="rtable"></div></div></section>
     <section id="v-rem" class="hide"><div class="card"><div id="remfull"></div></div></section>
     <section id="v-users" class="hide"><div class="card"><h3>Users <button class="btn sm" id="newu"></button></h3><div class="tw" id="utable"></div></div></section>
-    <section id="v-site" class="hide"><div class="card">
-      <div class="note">Manage what visitors see on your website: gifts, art, shoes, weddings, workshops, events and your journey. Changes go live in about a minute. Turn “Live” off to hide something without deleting it.</div>
-      <div class="chips" id="site-tabs"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button class="btn" id="site-add"></button><button class="btn ghost hide" id="site-imp">Import artworks from website file</button><a class="btn ghost hide" id="site-view" target="_blank" rel="noopener">View website</a></div>
-      <div id="site-list"></div></div></section>
   </main>
 </div>
 
@@ -287,8 +282,6 @@ dialog h3{margin:0 0 16px;font-size:18px}
   <label>Role<select class="in" id="u_r"><option value="staff">Staff</option><option value="admin">Admin</option></select></label></div>
   <div class="err" id="ue"></div><div class="ft"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn">Save user</button></div></form></dialog>
 
-<dialog id="sd"><form id="sf"></form></dialog>
-
 <div id="toast"></div>
 
 <script>
@@ -316,9 +309,8 @@ let token=localStorage.getItem('tok'),me=null,orders=[],users=[],page='dash',sfi
 $('#fav').href=LOGO;$('#ati').href=LOGO;
 $$('.logo').forEach(i=>{i.src=LOGO;i.onerror=()=>{i.onerror=null;i.src=MARK}});
 $('#out').innerHTML=ic('out');$('#si').innerHTML=ic('search');$('#newo').innerHTML=ic('plus')+'New order';$('#newu').innerHTML=ic('plus')+'Add user';
-P.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>';
-const NAV=[['dash','Dashboard','grid'],['orders','Orders','box'],['courier','Courier','truck'],['stands','Stands','easel'],['rem','Reminders','bell'],['site','Website','globe'],['users','Users','users']];
-$('#nav').innerHTML=NAV.map(n=>`<a data-p="${n[0]}" class="${n[0]==='users'||n[0]==='site'?'admin':''}" tabindex="0">${ic(n[2])}<span class="l">${n[1]}</span>${n[0]==='rem'?'<span class="badge hide" id="rb"></span>':''}${n[0]==='stands'?'<span class="badge hide" id="sb" style="background:#fff;color:var(--p)"></span>':''}${n[0]==='courier'?'<span class="badge hide" id="cb" style="background:#fff;color:var(--p)"></span>':''}</a>`).join('');
+const NAV=[['dash','Dashboard','grid'],['orders','Orders','box'],['courier','Courier','truck'],['stands','Stands','easel'],['rem','Reminders','bell'],['users','Users','users']];
+$('#nav').innerHTML=NAV.map(n=>`<a data-p="${n[0]}" class="${n[0]==='users'?'admin':''}" tabindex="0">${ic(n[2])}<span class="l">${n[1]}</span>${n[0]==='rem'?'<span class="badge hide" id="rb"></span>':''}${n[0]==='stands'?'<span class="badge hide" id="sb" style="background:#fff;color:var(--p)"></span>':''}${n[0]==='courier'?'<span class="badge hide" id="cb" style="background:#fff;color:var(--p)"></span>':''}</a>`).join('');
 
 async function api(path,method='GET',body){
   const r=await fetch(API_BASE+'/api/'+path,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:body?JSON.stringify(body):undefined});
@@ -337,10 +329,10 @@ async function start(){$('#login').classList.add('hide');$('#app').classList.rem
   $$('.admin').forEach(a=>a.classList.toggle('hide',me.role!=='admin'));$('#bn').textContent=BUSINESS;$('#bn2').textContent=BUSINESS;$('#avl2').textContent=me.name[0].toUpperCase();await load();go('dash')}
 async function load(){orders=await api('orders');renderAll()}
 /* nav */
-const titles={dash:'Dashboard',orders:'Orders',courier:'Courier',stands:'Stands',rem:'Reminders',site:'Website',users:'Users'};
+const titles={dash:'Dashboard',orders:'Orders',courier:'Courier',stands:'Stands',rem:'Reminders',users:'Users'};
 function go(p,filter){page=p;if(filter!==undefined)sfilter=filter;$$('main section').forEach(s=>s.classList.add('hide'));$('#v-'+p).classList.remove('hide');
   $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===p));$('#title').textContent=titles[p];
-  $('#newo').classList.toggle('hide',p==='users'||p==='courier'||p==='stands'||p==='site');$('.search').classList.toggle('hide',p==='site');if(p==='users')loadUsers();if(p==='site')loadSite();renderAll()}
+  $('#newo').classList.toggle('hide',p==='users'||p==='courier'||p==='stands');if(p==='users')loadUsers();renderAll()}
 $$('#nav a').forEach(a=>{a.onclick=()=>go(a.dataset.p,'');a.onkeydown=e=>{if(e.key==='Enter')a.click()}});
 $('#q').oninput=()=>{if(page!=='orders')go('orders');else renderAll()};
 $('#pf').onchange=renderAll;
@@ -608,56 +600,6 @@ function invoice(o){
   <div class="bar"><button onclick="print()">Download / Print PDF</button></div>
   <script>function fit(){var p=document.querySelector(".pg"),w=document.documentElement.clientWidth;p.style.zoom=w<p.offsetWidth+16?(w-16)/p.offsetWidth:1}addEventListener("resize",fit);addEventListener("beforeprint",function(){document.querySelector(".pg").style.zoom=1});addEventListener("afterprint",fit);fit()<\/script></body></html>`);w.document.close()}
 boot();
-</script>
-<style>
-.srow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.srow:last-child{border:0}
-.sth{flex:none;width:52px;height:52px;border-radius:12px;background:var(--soft);object-fit:cover;display:block}
-.srow .tx{flex:1;min-width:150px}.srow .tx b{display:block}.srow .tx small{color:var(--mute)}.srow .chk{margin:0;padding:6px 10px;font-size:12px}
-.sths{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.sths div{position:relative;width:70px;height:70px}.sths img{width:100%;height:100%;object-fit:cover;border-radius:12px}.sths button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:var(--bad);color:#fff;padding:0;line-height:1}
-</style>
-<script>
-/* ===== Website content manager (admin only) ===== */
-P.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>';
-const SK={gift:{n:'Gifts',f:'title description images'},art:{n:'Art Gallery',f:'title category size medium year description images'},shoe:{n:'Shoes',f:'title description images'},wedding:{n:'Weddings',f:'title description images'},workshop:{n:'Workshops',f:'year title subtitle description images'},event:{n:'Events',f:'year title subtitle'},journey:{n:'Journey',f:'year title description'}};
-const SL={title:'Title',category:'Collection',size:'Size (e.g. 12 x 18 in)',medium:'Medium (e.g. Acrylic)',year:'Year',subtitle:'Place / note',description:'Description'};
-const SCATS=['Classic mandala','Line art','Cosmic art','Doodle art'];
-const SITE_URL=''; // your website address once it is hosted, e.g. 'https://paperthreads-site.vercel.app' (adds a "View website" button)
-if(SITE_URL){$('#site-view').href=SITE_URL;$('#site-view').classList.remove('hide')}
-let sitems=[],skind='gift',scur=[];
-const simg=u=>u&&u.charAt(0)==='/'?API_BASE+u:u;
-const slist=()=>sitems.filter(i=>i.kind===skind).sort((a,b)=>a.sort-b.sort);
-$('#site-add').innerHTML=ic('plus')+'Add new';
-async function loadSite(){try{sitems=await api('items');sdraw()}catch(x){warn(x.message)}}
-function sdraw(){const L=slist();
-  $('#site-tabs').innerHTML=Object.entries(SK).map(([k,v])=>`<button class="chip ${k===skind?'on':''}" data-sk="${k}">${v.n}<b>${sitems.filter(i=>i.kind===k).length}</b></button>`).join('');
-  $('#site-imp').classList.toggle('hide',!(skind==='art'&&!L.length));
-  $('#site-list').innerHTML=L.length?L.map(x=>`<div class="srow">${x.images&&x.images[0]?`<img class="sth" src="${esc(simg(x.images[0]))}" alt="">`:'<span class="sth"></span>'}<div class="tx"><b>${esc(x.title)}</b><small>${esc([x.year,x.category,x.size,x.subtitle].filter(Boolean).join(' · '))}</small></div><div class="acts"><button class="btn ghost sm ico" data-sa="up" data-id="${x.id}" aria-label="Move up">▲</button><button class="btn ghost sm ico" data-sa="down" data-id="${x.id}" aria-label="Move down">▼</button><label class="chk"><input type="checkbox" data-sa="pub" data-id="${x.id}" ${x.published?'checked':''}> Live</label><button class="btn ghost sm ico" data-sa="edit" data-id="${x.id}" aria-label="Edit">${ic('edit')}</button><button class="btn del sm ico" data-sa="del" data-id="${x.id}" aria-label="Delete">${ic('trash')}</button></div></div>`).join(''):'<div class="empty">Nothing here yet. Press “Add new”.</div>'}
-$('#v-site').addEventListener('click',async e=>{const b=e.target.closest('[data-sk],[data-sa]');if(!b)return;
-  if(b.dataset.sk){skind=b.dataset.sk;sdraw();return}
-  const a=b.dataset.sa,id=b.dataset.id,x=sitems.find(i=>i.id===id);if(!x)return;
-  if(a==='edit')sform(x);
-  if(a==='up'||a==='down')smove(id,a==='up'?-1:1);
-  if(a==='del'&&await askDel('Delete “'+x.title+'”?','Its photos will be removed too.')){try{await api('items/'+id,'DELETE');sitems=sitems.filter(i=>i.id!==id);sdraw();toast('Deleted')}catch(er){warn(er.message)}}});
-$('#v-site').addEventListener('change',async e=>{const t=e.target;if(t.dataset.sa!=='pub')return;const x=sitems.find(i=>i.id===t.dataset.id);
-  try{await api('items/'+x.id,'PUT',{...x,published:t.checked});x.published=t.checked;toast(t.checked?'Now live':'Hidden from website')}catch(er){t.checked=!t.checked;warn(er.message)}});
-async function smove(id,d){const L=slist(),i=L.findIndex(x=>x.id===id),j=i+d;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];L.forEach((x,k)=>x.sort=k);sdraw();
-  try{await api('items/reorder','POST',{ids:L.map(x=>x.id)})}catch(er){warn(er.message);loadSite()}}
-const sshrink=f=>new Promise((res,rej)=>{const im=new Image,u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(new Error('Image error')),'image/jpeg',.86)};im.onerror=()=>rej(new Error('Cannot read this image'));im.src=u});
-async function supl(blob){const r=await fetch(API_BASE+'/api/media',{method:'POST',headers:{'Content-Type':'image/jpeg',Authorization:'Bearer '+token},body:blob}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Upload failed');return j.url}
-const sths=()=>{$('#sths').innerHTML=scur.map((u,i)=>`<div><img src="${esc(simg(u))}" alt=""><button type="button" data-r="${i}" aria-label="Remove photo">✕</button></div>`).join('')};
-function sform(x){x=x||{};scur=[...(x.images||[])];const F=SK[skind].f.split(' '),full=['title','description','images'];
-  $('#sf').innerHTML=`<h3>${x.id?'Edit':'Add'} · ${SK[skind].n}</h3><div class="err" id="se" style="margin:0 0 12px"></div><div class="f2">`+F.map(f=>f==='images'?`<div class="full"><label>Photos (the first one is the main photo)</label><div class="sths" id="sths"></div><input type="file" id="sfi" accept="image/*" multiple><div class="sub2" id="sup"></div></div>`:f==='category'?`<label>${SL[f]}<input class="in" id="sf_category" list="scl" value="${esc(x.category)}"><datalist id="scl">${SCATS.map(c=>`<option>${c}</option>`).join('')}</datalist></label>`:f==='description'?`<label class="full">${SL[f]}<textarea class="in" id="sf_description" rows="3">${esc(x.description)}</textarea></label>`:`<label class="${full.includes(f)?'full':''}">${SL[f]}<input class="in" id="sf_${f}" value="${esc(x[f])}" ${f==='title'?'required':''}></label>`).join('')+`</div><div class="ft"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" id="ssv">Save</button></div>`;
-  if(F.includes('images')){sths();$('#sths').onclick=e=>{const b=e.target.closest('[data-r]');if(b){scur.splice(+b.dataset.r,1);sths()}};
-    $('#sfi').onchange=async e=>{const fs=[...e.target.files];$('#ssv').disabled=true;for(let n=0;n<fs.length;n++){$('#sup').textContent=`Uploading ${n+1}/${fs.length}…`;try{scur.push(await supl(await sshrink(fs[n])));sths()}catch(er){warn(er.message)}}$('#sup').textContent='';e.target.value='';$('#ssv').disabled=false}}
-  $('#sf').onsubmit=async e=>{e.preventDefault();const b={kind:skind};F.forEach(f=>{b[f]=f==='images'?scur:$('#sf_'+f).value.trim()});$('#ssv').disabled=true;$('#se').textContent='';
-    try{x.id?await api('items/'+x.id,'PUT',b):await api('items','POST',b);$('#sd').close();toast('Saved');loadSite()}catch(er){$('#se').textContent=er.message;$('#ssv').disabled=false}};
-  $('#sd').showModal()}
-$('#site-add').onclick=()=>sform();
-$('#site-imp').onclick=()=>{const fi=document.createElement('input');fi.type='file';fi.accept='.html,text/html';
-  fi.onchange=async()=>{if(!fi.files[0]||!await ask('Import artworks?','This copies the artworks inside the chosen website file into the database.','Import'))return;const bt=$('#site-imp');
-    try{const t=await fi.files[0].text(),m=t.match(/const A=(\[\s*\[[\s\S]*?\]\s*\]);/);if(!m)throw new Error('This file does not contain the starter artworks. Choose the website index.html');const A=JSON.parse(m[1]);
-      for(let n=0;n<A.length;n++){const a=A[n];bt.textContent=`Importing ${n+1}/${A.length}…`;const url=await supl(await (await fetch(a[4])).blob());await api('items','POST',{kind:'art',category:a[0],title:a[1],size:a[2],description:a[3],images:[url]})}
-      toast('Import finished')}catch(er){warn(er.message)}bt.textContent='Import artworks from website file';loadSite()};fi.click()};
 </script>
 </body>
 </html>

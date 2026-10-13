@@ -66,17 +66,12 @@ async function initDb() {
     const r = await pool.query('SELECT data FROM app_state WHERE id = 1');
     if (r.rows.length) db = r.rows[0].data;
     else if (fs.existsSync(DB_FILE)) { db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); console.log('Imported existing data.json into the database'); }
-    await pool.query('CREATE TABLE IF NOT EXISTS media (id UUID PRIMARY KEY, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now())');
     console.log('Using PostgreSQL database');
   } else {
     if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     console.log('Using local file ' + DB_FILE + ' (set DATABASE_URL to use a database)');
   }
-  db.users = db.users || []; db.orders = db.orders || []; db.items = db.items || [];
-  if (!db.itemsSeeded) { // starter website text content (journey, workshops, events), added once
-    SEED.forEach(([kind, title, year, subtitle, description], i) => db.items.push({ id: crypto.randomUUID(), kind, title, year, subtitle, description, category: '', size: '', medium: '', images: [], published: true, sort: db.items.filter(x => x.kind === kind).length, createdAt: new Date().toISOString() }));
-    db.itemsSeeded = true;
-  }
+  db.users = db.users || []; db.orders = db.orders || [];
   if (!db.users.length) {
     db.users.push({ id: crypto.randomUUID(), name: 'Admin', username: 'admin', role: 'admin', password: hash('admin123') });
     console.log('First run: login with admin / admin123 (change it in Users page)');
@@ -250,106 +245,6 @@ app.put('/api/users/:id', auth, adminOnly, (req, res) => {
 app.delete('/api/users/:id', auth, adminOnly, (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: "You can't delete your own account" });
   db.users = db.users.filter(u => u.id !== req.params.id); save(); res.json({ ok: true });
-});
-
-
-// ---------- website content (managed from the CRM "Website" page) ----------
-// Public website reads GET /api/public/items. Everything else needs an admin login.
-const KINDS = ['gift', 'art', 'shoe', 'wedding', 'workshop', 'event', 'journey'];
-const MEDIA_DIR = path.join(DATA_DIR, 'media');
-const UUID = /^[0-9a-f-]{36}$/i;
-const SEED = [ // [kind, title, year, subtitle, description] - added once on first start
-  ["journey", "Paperthreads began", "2018", "", "It all started with my love for handmade creations. A friend encouraged me to start an Instagram page and helped me create it."],
-  ["journey", "Discovering drawing", "2020", "", "During COVID I picked up a pen and found my love for mandala art and hand-drawn work."],
-  ["journey", "My first Kala Pola", "2024", "", "I took my first drawings to Kala Pola. Some found new homes, and I gained the confidence to share and sell my art more seriously."],
-  ["journey", "My first solo exhibition", "2024", "", "Celebrating Paperthreads' 6th anniversary at Siam House, the former Thai Embassy in Colombo."],
-  ["journey", "Fairway Art & Jazz", "2024 →", "", "Became a member of the community and joined their art events and exhibitions."],
-  ["journey", "More art, more sharing", "2025", "", "Returned to Kala Pola and started exploring art workshops."],
-  ["journey", "A new chapter", "2026", "", "More exhibitions, workshops and new artwork, and now this portfolio and website."],
-  ["workshop", "Wooden Mandala Art Workshop", "2025", "", "A small hands-on workshop where participants created their own wooden mandala artworks."],
-  ["workshop", "Ape Gama Workshop", "2025", "", "A creative art experience in a relaxed setting."],
-  ["workshop", "Walk-In Paint Experience", "2025", "", "Fairway Colombo. Sit down, paint and enjoy creating something of your own."],
-  ["workshop", "Walk-In Paint Experience", "2026", "", "Fairway Colombo. Another round, making art simple, relaxing and enjoyable for everyone."],
-  ["workshop", "Children's Art Workshop", "2026", "", "Our Lady of Lourdes Church, Dampe. A fun painting experience for children."],
-  ["event", "Kala Pola", "2024–26", "", ""],
-  ["event", "Solo Exhibition", "2024", "Siam House, Colombo", ""],
-  ["event", "Fairway Art & Jazz", "2024 →", "", ""],
-  ["event", "Kotte Ape Gama", "2025", "", ""]
-];
-const str = (v, n = 2000) => String(v == null ? '' : v).trim().slice(0, n);
-const mediaId = u => { const m = /\/api\/media\/([0-9a-f-]{36})$/i.exec(u || ''); return m && m[1]; };
-async function mediaPut(buf) {
-  const id = crypto.randomUUID();
-  if (USE_PG) await pool.query('INSERT INTO media (id, data) VALUES ($1, $2)', [id, buf]);
-  else { fs.mkdirSync(MEDIA_DIR, { recursive: true }); fs.writeFileSync(path.join(MEDIA_DIR, id), buf); }
-  return id;
-}
-async function mediaGet(id) {
-  if (USE_PG) { const r = await pool.query('SELECT data FROM media WHERE id = $1', [id]); return r.rows[0] && r.rows[0].data; }
-  const f = path.join(MEDIA_DIR, id); return fs.existsSync(f) ? fs.readFileSync(f) : null;
-}
-const mediaDel = id => {
-  try { if (USE_PG) pool.query('DELETE FROM media WHERE id = $1', [id]).catch(() => {}); else fs.unlink(path.join(MEDIA_DIR, id), () => {}); } catch (e) {}
-};
-function cleanItem(b) {
-  return {
-    kind: KINDS.includes(b.kind) ? b.kind : 'gift',
-    title: str(b.title, 200), category: str(b.category, 100), size: str(b.size, 60), medium: str(b.medium, 100),
-    year: str(b.year, 30), subtitle: str(b.subtitle, 200), description: str(b.description, 2000),
-    images: (Array.isArray(b.images) ? b.images : []).filter(u => typeof u === 'string' && u.length < 500).slice(0, 12),
-    published: b.published !== false,
-  };
-}
-const bySort = (a, b) => (a.sort - b.sort) || String(a.createdAt).localeCompare(String(b.createdAt));
-
-// public (no login): only published items, no internal ids
-app.get('/api/public/items', (req, res) => {
-  res.setHeader('Cache-Control', 'public, max-age=60');
-  res.json(db.items.filter(i => i.published).sort(bySort).map(({ id, createdAt, ...i }) => i));
-});
-app.get('/api/media/:id', async (req, res) => {
-  if (!UUID.test(req.params.id)) return res.sendStatus(404);
-  try {
-    const b = await mediaGet(req.params.id);
-    if (!b) return res.sendStatus(404);
-    res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.send(b);
-  } catch (e) { res.sendStatus(500); }
-});
-
-// admin only
-app.get('/api/items', auth, adminOnly, (req, res) => res.json(db.items.slice().sort(bySort)));
-app.post('/api/items/reorder', auth, adminOnly, (req, res) => {
-  (req.body.ids || []).forEach((id, i) => { const it = db.items.find(x => x.id === id); if (it) it.sort = i; });
-  save(); res.json({ ok: true });
-});
-app.post('/api/items', auth, adminOnly, (req, res) => {
-  const c = cleanItem(req.body);
-  if (!c.title) return res.status(400).json({ error: 'Title is required' });
-  const sorts = db.items.filter(i => i.kind === c.kind).map(i => i.sort);
-  const it = { id: crypto.randomUUID(), ...c, sort: sorts.length ? Math.max(...sorts) + 1 : 0, createdAt: new Date().toISOString() };
-  db.items.push(it); save(); res.status(201).json(it);
-});
-app.put('/api/items/:id', auth, adminOnly, (req, res) => {
-  const it = db.items.find(x => x.id === req.params.id);
-  if (!it) return res.status(404).json({ error: 'Item not found' });
-  const c = cleanItem({ ...req.body, kind: it.kind });
-  if (!c.title) return res.status(400).json({ error: 'Title is required' });
-  (it.images || []).filter(u => !c.images.includes(u)).map(mediaId).filter(Boolean).forEach(mediaDel); // removed photos
-  Object.assign(it, c); save(); res.json(it);
-});
-app.delete('/api/items/:id', auth, adminOnly, (req, res) => {
-  const it = db.items.find(x => x.id === req.params.id);
-  if (it) (it.images || []).map(mediaId).filter(Boolean).forEach(mediaDel);
-  db.items = db.items.filter(i => i.id !== req.params.id); save(); res.json({ ok: true });
-});
-// photo upload: the browser sends a resized JPEG as the raw request body
-app.post('/api/media', auth, adminOnly, express.raw({ type: 'image/jpeg', limit: '6mb' }), async (req, res) => {
-  if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: 'Send a JPEG image' });
-  try { res.status(201).json({ url: '/api/media/' + await mediaPut(req.body) }); }
-  catch (e) { console.error('Photo save failed:', e.message); res.status(500).json({ error: 'Could not store the photo' }); }
 });
 
 // ---------- automatic backup ----------
